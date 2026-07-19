@@ -18,6 +18,7 @@ export const typeOrmConfig = (
 
   autoLoadEntities: true,
 
-  synchronize: true,
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  synchronize: true,  // Dev only
   logging: true
-});
+  });
