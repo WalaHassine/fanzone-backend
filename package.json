@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:trace": "node scripts/generate-traceability.js"
   },
   "typeorm": {
     "typeorm": "typeorm",
@@ -25,7 +26,6 @@
     "migration:run": "typeorm migration:run -d src/database/typeorm.config.ts",
     "migration:revert": "typeorm migration:revert -d src/database/typeorm.config.ts"
   },
-
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.28",

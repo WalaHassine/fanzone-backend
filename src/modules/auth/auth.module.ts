@@ -51,15 +51,15 @@ import { UserModule } from '../user/user.module';
     /**
      * JWT Module
      * - Async registration to inject ConfigService
-     * - Uses secret from environment
-     * - Sets expiration time
+     * - Reads from the `jwt` config namespace (src/config/jwt.config.ts),
+     *   which is the single owner of JWT_SECRET / JWT_EXPIRATION
      */
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('jwt.secret'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION') ?? '1h',
+          expiresIn: configService.get<string>('jwt.expiration'),
         } as JwtSignOptions,
       }),
     }),

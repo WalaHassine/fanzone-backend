@@ -1,0 +1,39 @@
+{
+  "_comment": "Source of truth: docs/design-document.md §7. Update here when the design doc changes. `scope` marks which requirements are testable from this backend repo — frontend/infra items are reported as N/A rather than as coverage gaps.",
+  "functional": [
+    { "id": "EF-01", "requirement": "Créer un compte via email et mot de passe", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-02", "requirement": "S'authentifier de manière sécurisée (JWT)", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-03", "requirement": "Sélectionner une ou plusieurs équipes favorites", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-04", "requirement": "Définir sa ville / localisation", "actor": "Fan", "priority": "Moyenne", "scope": "backend" },
+    { "id": "EF-05", "requirement": "Choisir une préférence d'ambiance", "actor": "Fan", "priority": "Moyenne", "scope": "backend" },
+    { "id": "EF-06", "requirement": "Afficher la liste des matchs", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-07", "requirement": "Filtrer les matchs par équipe", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-08", "requirement": "Afficher les fan zones sur une carte interactive", "actor": "Fan", "priority": "Haute", "scope": "frontend" },
+    { "id": "EF-09", "requirement": "Afficher distance, capacité, disponibilité, équipes diffusées", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-10", "requirement": "Check-in anonyme dans une fan zone", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-11", "requirement": "Afficher une présence agrégée et anonyme par équipe", "actor": "Fan", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-12", "requirement": "Afficher le taux de remplissage d'une fan zone", "actor": "Fan", "priority": "Moyenne", "scope": "backend" },
+    { "id": "EF-13", "requirement": "Recommander une fan zone adaptée au profil", "actor": "Module IA", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-14", "requirement": "Fournir une explication textuelle de la recommandation", "actor": "Module IA", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-15", "requirement": "Suggérer des alertes pertinentes", "actor": "Module IA", "priority": "Moyenne", "scope": "backend" },
+    { "id": "EF-16", "requirement": "Activer une alerte pour un match d'une équipe favorite", "actor": "Fan", "priority": "Moyenne", "scope": "backend" },
+    { "id": "EF-17", "requirement": "Admin — ajouter et modifier des matchs", "actor": "Administrateur", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-18", "requirement": "Admin — ajouter et modifier des fan zones", "actor": "Administrateur", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-19", "requirement": "Admin — mettre à jour capacité, disponibilité, équipes, horaires", "actor": "Administrateur", "priority": "Haute", "scope": "backend" },
+    { "id": "EF-20", "requirement": "Admin — consulter les statistiques de check-ins", "actor": "Administrateur", "priority": "Moyenne", "scope": "backend" },
+    { "id": "EF-21", "requirement": "Générer automatiquement une description de fan zone", "actor": "Module IA", "priority": "Basse", "scope": "backend" }
+  ],
+  "nonFunctional": [
+    { "id": "ENF-01", "requirement": "Recommandation IA en moins de 3 secondes", "category": "Performance", "scope": "backend" },
+    { "id": "ENF-02", "requirement": "Affichage de la carte en moins de 2 secondes", "category": "Performance", "scope": "frontend" },
+    { "id": "ENF-03", "requirement": "Mots de passe stockés hachés (bcrypt)", "category": "Sécurité", "scope": "backend" },
+    { "id": "ENF-04", "requirement": "Accès administration restreint par rôle (RBAC)", "category": "Sécurité", "scope": "backend" },
+    { "id": "ENF-05", "requirement": "Aucune donnée personnelle identifiable lors d'un check-in", "category": "Confidentialité", "scope": "backend" },
+    { "id": "ENF-06", "requirement": "Interface responsive mobile et desktop", "category": "Utilisabilité", "scope": "frontend" },
+    { "id": "ENF-07", "requirement": "Gérer les erreurs de saisie sans interruption de service", "category": "Fiabilité", "scope": "backend" },
+    { "id": "ENF-08", "requirement": "Code structuré en modules selon une architecture claire", "category": "Maintenabilité", "scope": "review" },
+    { "id": "ENF-09", "requirement": "Déployable sur environnements standards", "category": "Portabilité", "scope": "infra" },
+    { "id": "ENF-10", "requirement": "Compatible avec les navigateurs modernes", "category": "Compatibilité", "scope": "frontend" },
+    { "id": "ENF-11", "requirement": "Modèle de données extensible en géospatial (PostGIS)", "category": "Scalabilité", "scope": "review" }
+  ]
+}

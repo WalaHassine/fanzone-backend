@@ -6,6 +6,10 @@ import { APP_FILTER, APP_PIPE, APP_INTERCEPTOR } from '@nestjs/core';
 // Import database configuration
 import { TypeOrmConfigService } from './database/typeorm.config';
 
+// Import configuration namespaces
+import appConfig from './config/app.config';
+import jwtConfig from './config/jwt.config';
+
 // Import all service modules
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
@@ -42,12 +46,14 @@ import { AppService } from './app.service';
      * Configuration Module
      * - Loads environment variables from .env file
      * - Makes ConfigService available globally
+     * - Registers typed namespaces: `app.*` and `jwt.*`
      */
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       cache: true,
       expandVariables: true,
+      load: [appConfig, jwtConfig],
     }),
 
     /**
