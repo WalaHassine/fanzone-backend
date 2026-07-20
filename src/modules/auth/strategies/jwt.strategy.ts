@@ -20,7 +20,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     // Computed before super() (does not touch `this`, so it is legal).
     // Fail loudly rather than silently running on an insecure fallback secret.
-    const secret = configService.get<string>('JWT_SECRET');
+    // Reads the same `jwt` namespace AuthModule signs with, so verification
+    // and signing can never diverge onto different secrets.
+    const secret = configService.get<string>('jwt.secret');
     if (!secret) {
       throw new Error('JWT_SECRET is not defined in the environment');
     }

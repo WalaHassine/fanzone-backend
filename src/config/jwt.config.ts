@@ -50,10 +50,17 @@ export function parseDurationToSeconds(duration: string): number {
  * Requirement: EF-02 (secure JWT authentication).
  */
 export default registerAs('jwt', (): JwtConfig => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    // Fail at boot rather than let JwtModule sign tokens with an empty secret,
+    // which would produce forgeable tokens that still verify.
+    throw new Error('JWT_SECRET is not defined in the environment');
+  }
+
   const expiration = process.env.JWT_EXPIRATION ?? '1h';
 
   return {
-    secret: process.env.JWT_SECRET ?? '',
+    secret,
     expiration,
     expiresInSeconds: parseDurationToSeconds(expiration),
   };
