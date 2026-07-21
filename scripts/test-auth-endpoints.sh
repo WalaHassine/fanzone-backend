@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Task 3.7 — Auth endpoint black-box tests.
+# Task — Auth endpoint black-box tests.
 #
 # Exercises POST /auth/register, POST /auth/login and GET /auth/profile against a
 # RUNNING server and checks status codes, response bodies and JWT correctness.

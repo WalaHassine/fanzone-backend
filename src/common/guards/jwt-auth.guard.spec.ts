@@ -13,7 +13,7 @@ function makeContext(): ExecutionContext {
   } as unknown as ExecutionContext;
 }
 
-describe('JwtAuthGuard', () => {
+describe('JwtAuthGuard (EF-02)', () => {
   let guard: JwtAuthGuard;
   let reflector: { getAllAndOverride: jest.Mock };
   // The parent is the Passport AuthGuard('jwt') mixin; spying on its prototype

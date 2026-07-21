@@ -22,7 +22,7 @@ import { TeamEntity } from '../match/entities/team.entity';
  * circular dependency or an unresolved provider would make `.compile()` throw,
  * failing the suite.
  */
-describe('AuthModule (integration)', () => {
+describe('AuthModule (ENF-08)', () => {
   let moduleRef: TestingModule;
 
   beforeAll(async () => {
