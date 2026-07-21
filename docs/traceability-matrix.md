@@ -12,9 +12,9 @@ Testing approach: [test-strategy.md](test-strategy.md).
 | | |
 |---|---|
 | Backend functional requirements | 20 |
-| Covered by tests | 2 |
-| Not yet covered | 18 |
-| Total tests in suite | 62 (62 passing, 0 failing) |
+| Covered by tests | 5 |
+| Not yet covered | 15 |
+| Total tests in suite | 83 (83 passing, 0 failing) |
 
 ## Functional requirements (EF)
 
@@ -22,9 +22,9 @@ Testing approach: [test-strategy.md](test-strategy.md).
 |---|---|---|---|---|
 | **EF-01** | Créer un compte via email et mot de passe | Haute | `src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 16 passing |
 | **EF-02** | S'authentifier de manière sécurisée (JWT) | Haute | `src/common/guards/jwt-auth.guard.spec.ts`<br>`src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 32 passing |
-| **EF-03** | Sélectionner une ou plusieurs équipes favorites | Haute | — | ⬜ Not covered |
-| **EF-04** | Définir sa ville / localisation | Moyenne | — | ⬜ Not covered |
-| **EF-05** | Choisir une préférence d'ambiance | Moyenne | — | ⬜ Not covered |
+| **EF-03** | Sélectionner une ou plusieurs équipes favorites | Haute | `src/modules/user/dto/user-dto.spec.ts` | ✅ 5 passing |
+| **EF-04** | Définir sa ville / localisation | Moyenne | `src/modules/user/dto/user-dto.spec.ts` | ✅ 12 passing |
+| **EF-05** | Choisir une préférence d'ambiance | Moyenne | `src/modules/user/dto/user-dto.spec.ts` | ✅ 12 passing |
 | **EF-06** | Afficher la liste des matchs | Haute | — | ⬜ Not covered |
 | **EF-07** | Filtrer les matchs par équipe | Haute | — | ⬜ Not covered |
 | **EF-08** | Afficher les fan zones sur une carte interactive | Haute | — | — N/A (frontend) |
