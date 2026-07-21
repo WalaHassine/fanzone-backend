@@ -14,14 +14,14 @@ Testing approach: [test-strategy.md](test-strategy.md).
 | Backend functional requirements | 20 |
 | Covered by tests | 2 |
 | Not yet covered | 18 |
-| Total tests in suite | 39 (39 passing, 0 failing) |
+| Total tests in suite | 62 (62 passing, 0 failing) |
 
 ## Functional requirements (EF)
 
 | ID | Requirement | Priority | Tests | Status |
 |---|---|---|---|---|
-| **EF-01** | Créer un compte via email et mot de passe | Haute | `src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 14 passing |
-| **EF-02** | S'authentifier de manière sécurisée (JWT) | Haute | `src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 15 passing |
+| **EF-01** | Créer un compte via email et mot de passe | Haute | `src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 16 passing |
+| **EF-02** | S'authentifier de manière sécurisée (JWT) | Haute | `src/common/guards/jwt-auth.guard.spec.ts`<br>`src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 32 passing |
 | **EF-03** | Sélectionner une ou plusieurs équipes favorites | Haute | — | ⬜ Not covered |
 | **EF-04** | Définir sa ville / localisation | Moyenne | — | ⬜ Not covered |
 | **EF-05** | Choisir une préférence d'ambiance | Moyenne | — | ⬜ Not covered |
@@ -49,11 +49,11 @@ Testing approach: [test-strategy.md](test-strategy.md).
 | **ENF-01** | Recommandation IA en moins de 3 secondes | Performance | — | ⬜ Not covered |
 | **ENF-02** | Affichage de la carte en moins de 2 secondes | Performance | — | — N/A (frontend) |
 | **ENF-03** | Mots de passe stockés hachés (bcrypt) | Sécurité | `src/modules/auth/auth.service.spec.ts` | ✅ 1 passing |
-| **ENF-04** | Accès administration restreint par rôle (RBAC) | Sécurité | — | ⬜ Not covered |
+| **ENF-04** | Accès administration restreint par rôle (RBAC) | Sécurité | `src/common/guards/roles.guard.spec.ts` | ✅ 7 passing |
 | **ENF-05** | Aucune donnée personnelle identifiable lors d'un check-in | Confidentialité | — | ⬜ Not covered |
 | **ENF-06** | Interface responsive mobile et desktop | Utilisabilité | — | — N/A (frontend) |
 | **ENF-07** | Gérer les erreurs de saisie sans interruption de service | Fiabilité | — | ⬜ Not covered |
-| **ENF-08** | Code structuré en modules selon une architecture claire | Maintenabilité | — | — N/A (review) |
+| **ENF-08** | Code structuré en modules selon une architecture claire | Maintenabilité | `src/modules/auth/auth.module.spec.ts` | ✅ 6 passing |
 | **ENF-09** | Déployable sur environnements standards | Portabilité | — | — N/A (infra) |
 | **ENF-10** | Compatible avec les navigateurs modernes | Compatibilité | — | — N/A (frontend) |
 | **ENF-11** | Modèle de données extensible en géospatial (PostGIS) | Scalabilité | — | — N/A (review) |

@@ -19,7 +19,7 @@ function makeContext(user: unknown): ExecutionContext {
   } as unknown as ExecutionContext;
 }
 
-describe('RolesGuard', () => {
+describe('RolesGuard (ENF-04)', () => {
   let guard: RolesGuard;
   let reflector: { getAllAndOverride: jest.Mock };
 

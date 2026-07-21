@@ -71,7 +71,7 @@ describe('LoginDto (EF-02)', () => {
   });
 });
 
-describe('parseDurationToSeconds', () => {
+describe('parseDurationToSeconds (EF-02)', () => {
   it.each([
     ['1h', 3600],
     ['15m', 900],
