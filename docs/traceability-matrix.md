@@ -12,21 +12,21 @@ Testing approach: [test-strategy.md](test-strategy.md).
 | | |
 |---|---|
 | Backend functional requirements | 20 |
-| Covered by tests | 5 |
-| Not yet covered | 15 |
-| Total tests in suite | 105 (105 passing, 0 failing) |
+| Covered by tests | 7 |
+| Not yet covered | 13 |
+| Total tests in suite | 136 (136 passing, 0 failing) |
 
 ## Functional requirements (EF)
 
 | ID | Requirement | Priority | Tests | Status |
 |---|---|---|---|---|
 | **EF-01** | Créer un compte via email et mot de passe | Haute | `src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 16 passing |
-| **EF-02** | S'authentifier de manière sécurisée (JWT) | Haute | `src/common/guards/jwt-auth.guard.spec.ts`<br>`src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 32 passing |
-| **EF-03** | Sélectionner une ou plusieurs équipes favorites | Haute | `src/modules/user/user.service.spec.ts`<br>`src/modules/user/user.controller.spec.ts`<br>`src/modules/user/dto/user-dto.spec.ts` | ✅ 11 passing |
-| **EF-04** | Définir sa ville / localisation | Moyenne | `src/modules/user/user.service.spec.ts`<br>`src/modules/user/user.controller.spec.ts`<br>`src/modules/user/dto/user-dto.spec.ts` | ✅ 18 passing |
-| **EF-05** | Choisir une préférence d'ambiance | Moyenne | `src/modules/user/user.service.spec.ts`<br>`src/modules/user/user.controller.spec.ts`<br>`src/modules/user/dto/user-dto.spec.ts` | ✅ 18 passing |
-| **EF-06** | Afficher la liste des matchs | Haute | — | ⬜ Not covered |
-| **EF-07** | Filtrer les matchs par équipe | Haute | — | ⬜ Not covered |
+| **EF-02** | S'authentifier de manière sécurisée (JWT) | Haute | `src/modules/auth/dto/auth-dto.spec.ts`<br>`src/modules/auth/auth.controller.spec.ts`<br>`src/common/guards/jwt-auth.guard.spec.ts`<br>`src/modules/auth/auth.service.spec.ts` | ✅ 32 passing |
+| **EF-03** | Sélectionner une ou plusieurs équipes favorites | Haute | `src/modules/user/user.service.spec.ts`<br>`src/modules/user/dto/user-dto.spec.ts`<br>`src/modules/user/user.controller.spec.ts` | ✅ 11 passing |
+| **EF-04** | Définir sa ville / localisation | Moyenne | `src/modules/user/user.service.spec.ts`<br>`src/modules/user/dto/user-dto.spec.ts`<br>`src/modules/user/user.controller.spec.ts` | ✅ 18 passing |
+| **EF-05** | Choisir une préférence d'ambiance | Moyenne | `src/modules/user/user.service.spec.ts`<br>`src/modules/user/dto/user-dto.spec.ts`<br>`src/modules/user/user.controller.spec.ts` | ✅ 18 passing |
+| **EF-06** | Afficher la liste des matchs | Haute | `src/modules/match/dto/match-dto.spec.ts`<br>`src/modules/match/services/match.service.spec.ts` | ✅ 8 passing |
+| **EF-07** | Filtrer les matchs par équipe | Haute | `src/modules/match/dto/match-dto.spec.ts`<br>`src/modules/match/services/match.service.spec.ts` | ✅ 8 passing |
 | **EF-08** | Afficher les fan zones sur une carte interactive | Haute | — | — N/A (frontend) |
 | **EF-09** | Afficher distance, capacité, disponibilité, équipes diffusées | Haute | — | ⬜ Not covered |
 | **EF-10** | Check-in anonyme dans une fan zone | Haute | — | ⬜ Not covered |
