@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:trace": "node scripts/generate-traceability.js"
+    "test:trace": "node scripts/generate-traceability.js",
+    "seed:admin": "ts-node -r tsconfig-paths/register scripts/seed-admin.ts"
   },
   "typeorm": {
     "typeorm": "typeorm",
