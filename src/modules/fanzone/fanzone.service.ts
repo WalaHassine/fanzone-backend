@@ -344,21 +344,102 @@ export class FanzoneService {
       throw new NotFoundException('Fan zone not found');
     }
 
-    const since = new Date(
-      Date.now() - CROWD_PRESENCE_WINDOW_HOURS * MILLISECONDS_PER_HOUR,
-    );
-
     const rows = await this.checkinRepository
       .createQueryBuilder('checkin')
       .innerJoin(TeamEntity, 'team', 'team.id = checkin.teamId')
       .select('team.name', 'teamName')
       .addSelect('COUNT(*)::int', 'count')
       .where('checkin.fanzoneId = :id', { id })
-      .andWhere('checkin.createdAt >= :since', { since })
+      .andWhere('checkin.createdAt >= :since', {
+        since: this.presenceWindowStart(),
+      })
       .groupBy('team.name')
       .orderBy('COUNT(*)', 'DESC')
       .getRawMany<{ teamName: string; count: number }>();
 
+    return this.buildCrowdStatus(fanzone, rows);
+  }
+
+  /**
+   * Crowd snapshots for a whole page of fan zones, in a single query.
+   *
+   * The list endpoint needs a snapshot per result. Calling `getCrowdStatus` in a
+   * loop would cost two queries per fan zone — one aggregation plus the
+   * `findById` it runs for its own 404 check — so this groups by fan zone id and
+   * aggregates them all at once instead.
+   *
+   * Anonymity is identical to `getCrowdStatus`: fan zone id, team name and a
+   * count, nothing per-user (EF-11, ENF-05).
+   *
+   * @returns a Map keyed by fan zone id, with an entry for **every** supplied fan
+   *   zone — zones with no check-ins get a zeroed snapshot rather than being
+   *   absent, so callers never handle a missing key.
+   */
+  async getCrowdStatusMany(
+    fanzones: FanzoneEntity[],
+  ): Promise<Map<string, CrowdStatusDto>> {
+    // `IN ()` is not valid SQL, and an empty page needs no query at all.
+    if (fanzones.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.checkinRepository
+      .createQueryBuilder('checkin')
+      .innerJoin(TeamEntity, 'team', 'team.id = checkin.teamId')
+      .select('checkin.fanzoneId', 'fanzoneId')
+      .addSelect('team.name', 'teamName')
+      .addSelect('COUNT(*)::int', 'count')
+      .where('checkin.fanzoneId IN (:...ids)', {
+        ids: fanzones.map((fanzone) => fanzone.id),
+      })
+      .andWhere('checkin.createdAt >= :since', {
+        since: this.presenceWindowStart(),
+      })
+      .groupBy('checkin.fanzoneId')
+      .addGroupBy('team.name')
+      .orderBy('COUNT(*)', 'DESC')
+      .getRawMany<{ fanzoneId: string; teamName: string; count: number }>();
+
+    const rowsByFanzone = new Map<
+      string,
+      { teamName: string; count: number }[]
+    >();
+    for (const row of rows) {
+      const existing = rowsByFanzone.get(row.fanzoneId);
+      if (existing) {
+        existing.push(row);
+      } else {
+        rowsByFanzone.set(row.fanzoneId, [row]);
+      }
+    }
+
+    return new Map(
+      fanzones.map((fanzone) => [
+        fanzone.id,
+        this.buildCrowdStatus(fanzone, rowsByFanzone.get(fanzone.id) ?? []),
+      ]),
+    );
+  }
+
+  /**
+   * Start of the presence window — check-ins older than this are stale.
+   */
+  private presenceWindowStart(): Date {
+    return new Date(
+      Date.now() - CROWD_PRESENCE_WINDOW_HOURS * MILLISECONDS_PER_HOUR,
+    );
+  }
+
+  /**
+   * Turns per-team counts into a CrowdStatusDto.
+   *
+   * Shared by the single and bulk aggregations so the totals, the percentages
+   * and the occupancy figure cannot drift between the two paths.
+   */
+  private buildCrowdStatus(
+    fanzone: FanzoneEntity,
+    rows: { teamName: string; count: number }[],
+  ): CrowdStatusDto {
     const totalPresent = rows.reduce((sum, row) => sum + Number(row.count), 0);
 
     const byTeam: TeamCrowdDto[] = rows.map((row) => {
