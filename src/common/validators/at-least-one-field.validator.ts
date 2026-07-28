@@ -31,7 +31,7 @@ export function AtLeastOneField(
   return (target: object) => {
     registerDecorator({
       name: 'atLeastOneField',
-      target: (target as { new (...args: unknown[]): unknown }),
+      target: target as { new (...args: unknown[]): unknown },
       propertyName: '__atLeastOneField__',
       constraints: [fields],
       options: validationOptions,

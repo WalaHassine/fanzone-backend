@@ -1,6 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 import { RequiredTogether } from '../../../common/validators/required-together.validator';
 import { FANZONE_CAPACITY_MAX } from './create-fanzone.dto';
@@ -115,7 +122,7 @@ export class FanzoneFilterDto {
   @ApiPropertyOptional({
     description:
       'Longitude of the caller, in decimal degrees; required together with latitude and maxDistance',
-    example: 51.5310,
+    example: 51.531,
     minimum: -180,
     maximum: 180,
   })

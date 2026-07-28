@@ -20,13 +20,13 @@ import { CheckinModule } from '../checkin/checkin.module';
 
 /**
  * Recommendation Module
- * 
+ *
  * Responsibilities:
  * - AI-powered fan zone recommendations
  * - Natural language explanations
  * - Alert suggestions
  * - Auto-generate fan zone descriptions
- * 
+ *
  * Key Features:
  * - Integration with OpenAI API
  * - Personalized recommendations based on:
@@ -37,7 +37,7 @@ import { CheckinModule } from '../checkin/checkin.module';
  *   - Upcoming matches
  * - <3 second response time
  * - Confidence scoring (0-1)
- * 
+ *
  * Exports:
  * - RecommendationService: Used by other modules
  * - TypeOrmModule: For accessing entities
@@ -92,10 +92,7 @@ import { CheckinModule } from '../checkin/checkin.module';
    * - RecommendationService: Main recommendation logic
    * - AiService: OpenAI API integration
    */
-  providers: [
-    RecommendationService,
-    AiService,
-  ],
+  providers: [RecommendationService, AiService],
 
   /**
    * Controllers for this module
@@ -108,9 +105,6 @@ import { CheckinModule } from '../checkin/checkin.module';
    * - RecommendationService: Can be used by other modules if needed
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    RecommendationService,
-    TypeOrmModule,
-  ],
+  exports: [RecommendationService, TypeOrmModule],
 })
 export class RecommendationModule {}

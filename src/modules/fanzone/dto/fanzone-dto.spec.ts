@@ -23,7 +23,9 @@ function errorsFor<T extends object>(cls: Ctor<T>, payload: object): string[] {
   const instance = plainToInstance(cls, payload, {
     enableImplicitConversion: true,
   });
-  return validateSync(instance).flatMap((e) => Object.values(e.constraints ?? {}));
+  return validateSync(instance).flatMap((e) =>
+    Object.values(e.constraints ?? {}),
+  );
 }
 
 const UUID_A = '3f0c9b7e-1a2b-4c3d-9e8f-0a1b2c3d4e5f';
@@ -76,9 +78,9 @@ describe('CreateFanzoneDto (EF-08, EF-09)', () => {
     });
 
     it('rejects an empty address', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ address: '' }))).toContain(
-        'Address is required',
-      );
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ address: '' })),
+      ).toContain('Address is required');
     });
 
     it('rejects an address longer than 500 characters', () => {
@@ -97,35 +99,49 @@ describe('CreateFanzoneDto (EF-08, EF-09)', () => {
   describe('description', () => {
     it('accepts exactly 1000 characters', () => {
       expect(
-        errorsFor(CreateFanzoneDto, validCreate({ description: 'x'.repeat(1000) })),
+        errorsFor(
+          CreateFanzoneDto,
+          validCreate({ description: 'x'.repeat(1000) }),
+        ),
       ).toEqual([]);
     });
 
     it('rejects more than 1000 characters', () => {
       expect(
-        errorsFor(CreateFanzoneDto, validCreate({ description: 'x'.repeat(1001) })),
+        errorsFor(
+          CreateFanzoneDto,
+          validCreate({ description: 'x'.repeat(1001) }),
+        ),
       ).toContain('Description must be at most 1000 characters long');
     });
   });
 
   describe('latitude / longitude', () => {
     it('accepts the latitude bounds', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ latitude: 90 }))).toEqual([]);
-      expect(errorsFor(CreateFanzoneDto, validCreate({ latitude: -90 }))).toEqual([]);
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ latitude: 90 })),
+      ).toEqual([]);
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ latitude: -90 })),
+      ).toEqual([]);
     });
 
     it('rejects a latitude outside the bounds', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ latitude: 90.1 }))).toContain(
-        'latitude must not be greater than 90',
-      );
-      expect(errorsFor(CreateFanzoneDto, validCreate({ latitude: -90.1 }))).toContain(
-        'latitude must not be less than -90',
-      );
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ latitude: 90.1 })),
+      ).toContain('latitude must not be greater than 90');
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ latitude: -90.1 })),
+      ).toContain('latitude must not be less than -90');
     });
 
     it('accepts the longitude bounds', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ longitude: 180 }))).toEqual([]);
-      expect(errorsFor(CreateFanzoneDto, validCreate({ longitude: -180 }))).toEqual([]);
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ longitude: 180 })),
+      ).toEqual([]);
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ longitude: -180 })),
+      ).toEqual([]);
     });
 
     it('rejects a longitude outside the bounds', () => {
@@ -169,13 +185,15 @@ describe('CreateFanzoneDto (EF-08, EF-09)', () => {
 
   describe('capacity', () => {
     it('accepts the minimum of 10', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ capacity: 10 }))).toEqual([]);
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ capacity: 10 })),
+      ).toEqual([]);
     });
 
     it('rejects a capacity below 10', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ capacity: 9 }))).toContain(
-        'capacity must be at least 10',
-      );
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ capacity: 9 })),
+      ).toContain('capacity must be at least 10');
     });
 
     it('rejects a capacity above the integer column ceiling', () => {
@@ -185,9 +203,9 @@ describe('CreateFanzoneDto (EF-08, EF-09)', () => {
     });
 
     it('rejects a non-integer capacity', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ capacity: 100.5 }))).toContain(
-        'capacity must be an integer',
-      );
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ capacity: 100.5 })),
+      ).toContain('capacity must be an integer');
     });
   });
 
@@ -220,33 +238,41 @@ describe('CreateFanzoneDto (EF-08, EF-09)', () => {
     it('rejects a time without a colon (@IsMilitaryTime would accept this)', () => {
       expect(
         errorsFor(CreateFanzoneDto, validCreate({ openingHour: '1800' })),
-      ).toContain('openingHour must be a time in HH:mm format (00:00 to 23:59)');
+      ).toContain(
+        'openingHour must be a time in HH:mm format (00:00 to 23:59)',
+      );
     });
 
     it('rejects an out-of-range hour', () => {
       expect(
         errorsFor(CreateFanzoneDto, validCreate({ closingHour: '24:00' })),
-      ).toContain('closingHour must be a time in HH:mm format (00:00 to 23:59)');
+      ).toContain(
+        'closingHour must be a time in HH:mm format (00:00 to 23:59)',
+      );
     });
 
     it('rejects an unpadded hour', () => {
       expect(
         errorsFor(CreateFanzoneDto, validCreate({ openingHour: '9:00' })),
-      ).toContain('openingHour must be a time in HH:mm format (00:00 to 23:59)');
+      ).toContain(
+        'openingHour must be a time in HH:mm format (00:00 to 23:59)',
+      );
     });
 
     it('rejects out-of-range minutes', () => {
       expect(
         errorsFor(CreateFanzoneDto, validCreate({ openingHour: '18:60' })),
-      ).toContain('openingHour must be a time in HH:mm format (00:00 to 23:59)');
+      ).toContain(
+        'openingHour must be a time in HH:mm format (00:00 to 23:59)',
+      );
     });
   });
 
   describe('teamIds', () => {
     it('rejects an empty array', () => {
-      expect(errorsFor(CreateFanzoneDto, validCreate({ teamIds: [] }))).toContain(
-        'At least one team ID is required',
-      );
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ teamIds: [] })),
+      ).toContain('At least one team ID is required');
     });
 
     it('rejects duplicate ids', () => {
@@ -266,9 +292,9 @@ describe('CreateFanzoneDto (EF-08, EF-09)', () => {
         { length: FANZONE_MAX_TEAMS + 1 },
         (_, i) => `3f0c9b7e-1a2b-4c3d-9e8f-${String(i).padStart(12, '0')}`,
       );
-      expect(errorsFor(CreateFanzoneDto, validCreate({ teamIds: tooMany }))).toContain(
-        `teamIds must contain at most ${FANZONE_MAX_TEAMS} team IDs`,
-      );
+      expect(
+        errorsFor(CreateFanzoneDto, validCreate({ teamIds: tooMany })),
+      ).toContain(`teamIds must contain at most ${FANZONE_MAX_TEAMS} team IDs`);
     });
   });
 });
@@ -350,8 +376,13 @@ describe('FanzoneFilterDto (EF-08, EF-09)', () => {
 
     it('rejects coordinates without maxDistance', () => {
       expect(
-        errorsFor(FanzoneFilterDto, { latitude: LATITUDE, longitude: LONGITUDE }),
-      ).toContain('latitude, longitude and maxDistance must be provided together');
+        errorsFor(FanzoneFilterDto, {
+          latitude: LATITUDE,
+          longitude: LONGITUDE,
+        }),
+      ).toContain(
+        'latitude, longitude and maxDistance must be provided together',
+      );
     });
   });
 
@@ -390,7 +421,9 @@ describe('FanzoneFilterDto (EF-08, EF-09)', () => {
           longitude: LONGITUDE,
           maxDistance: 5,
         }),
-      ).toContain('latitude, longitude and maxDistance must be provided together');
+      ).toContain(
+        'latitude, longitude and maxDistance must be provided together',
+      );
     });
   });
 

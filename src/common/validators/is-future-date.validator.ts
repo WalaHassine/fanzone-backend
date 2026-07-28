@@ -33,7 +33,7 @@ export function IsFutureDate(validationOptions?: ValidationOptions) {
           if (typeof value !== 'string' && !(value instanceof Date)) {
             return false;
           }
-          const time = new Date(value as string).getTime();
+          const time = new Date(value).getTime();
           // Not a parseable date — leave the format complaint to @IsISO8601.
           if (Number.isNaN(time)) {
             return true;

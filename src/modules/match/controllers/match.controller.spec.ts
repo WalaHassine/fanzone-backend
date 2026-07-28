@@ -10,7 +10,11 @@ import { UserRole } from '../../user/entities/user.entity';
 
 const MATCH_ID = 'b2c4d6e8-0a1b-4c3d-9e8f-1a2b3c4d5e6f';
 const TEAM_A = { id: 'team-uuid-a', name: 'France', code: 'FRA' } as TeamEntity;
-const TEAM_B = { id: 'team-uuid-b', name: 'Tunisia', code: 'TUN' } as TeamEntity;
+const TEAM_B = {
+  id: 'team-uuid-b',
+  name: 'Tunisia',
+  code: 'TUN',
+} as TeamEntity;
 const MATCH_DATE = '2099-11-21T16:00:00.000Z';
 const STADIUM = 'Lusail Stadium';
 

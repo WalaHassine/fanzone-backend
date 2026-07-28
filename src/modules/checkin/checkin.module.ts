@@ -16,18 +16,18 @@ import { UserModule } from '../user/user.module';
 
 /**
  * CheckIn Module
- * 
+ *
  * Responsibilities:
  * - Anonymous user check-in to fan zones
  * - Presence aggregation (no user IDs exposed)
  * - Session token generation (privacy-preserving)
  * - Crowd status queries
- * 
+ *
  * Key Privacy Feature:
  * - Stores userId in DB
  * - Returns sessionToken to client (never userId)
  * - Aggregates crowd by team (no individual data)
- * 
+ *
  * Exports:
  * - CheckinService: Used by FanzoneModule, AdminModule
  * - TypeOrmModule: For accessing entities
@@ -73,9 +73,6 @@ import { UserModule } from '../user/user.module';
    * - CheckinService: Required by FanzoneModule, AdminModule
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    CheckinService,
-    TypeOrmModule,
-  ],
+  exports: [CheckinService, TypeOrmModule],
 })
 export class CheckinModule {}

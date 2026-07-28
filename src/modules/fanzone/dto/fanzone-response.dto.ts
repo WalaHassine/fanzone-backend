@@ -58,7 +58,7 @@ export class FanzoneResponseDto {
 
   @ApiProperty({
     description: 'Longitude in decimal degrees (WGS 84)',
-    example: 51.5310,
+    example: 51.531,
   })
   longitude!: number;
 

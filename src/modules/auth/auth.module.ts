@@ -19,13 +19,13 @@ import { UserModule } from '../user/user.module';
 
 /**
  * Authentication Module
- * 
+ *
  * Responsibilities:
  * - User registration with password hashing
  * - User login with JWT token generation
  * - JWT token validation via Passport
  * - Protection of routes requiring authentication
- * 
+ *
  * Exports:
  * - AuthService: Available to other modules
  * - JwtModule: For JWT strategies
@@ -77,10 +77,7 @@ import { UserModule } from '../user/user.module';
    * - AuthService: Main authentication logic
    * - JwtStrategy: Passport strategy for JWT validation
    */
-  providers: [
-    AuthService,
-    JwtStrategy,
-  ],
+  providers: [AuthService, JwtStrategy],
 
   /**
    * Controllers for this module
@@ -94,10 +91,6 @@ import { UserModule } from '../user/user.module';
    * - JwtModule: For using JWT in other modules
    * - PassportModule: For using @UseGuards(JwtAuthGuard) in other modules
    */
-  exports: [
-    AuthService,
-    JwtModule,
-    PassportModule,
-  ],
+  exports: [AuthService, JwtModule, PassportModule],
 })
 export class AuthModule {}

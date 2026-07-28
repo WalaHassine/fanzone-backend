@@ -13,7 +13,9 @@ type Ctor<T> = new () => T;
 
 function errorsFor<T extends object>(cls: Ctor<T>, payload: object): string[] {
   const instance = plainToInstance(cls, payload);
-  return validateSync(instance).flatMap((e) => Object.values(e.constraints ?? {}));
+  return validateSync(instance).flatMap((e) =>
+    Object.values(e.constraints ?? {}),
+  );
 }
 
 const EMAIL = 'fan@worldcup.com';
@@ -27,7 +29,9 @@ describe('CreateUserDto', () => {
   });
 
   it('accepts an explicit valid role', () => {
-    expect(errorsFor(CreateUserDto, { email: EMAIL, role: UserRole.ADMIN })).toEqual([]);
+    expect(
+      errorsFor(CreateUserDto, { email: EMAIL, role: UserRole.ADMIN }),
+    ).toEqual([]);
   });
 
   it('rejects a malformed email', () => {
@@ -37,9 +41,9 @@ describe('CreateUserDto', () => {
   });
 
   it('rejects an unknown role', () => {
-    expect(errorsFor(CreateUserDto, { email: EMAIL, role: 'SUPERADMIN' })).toContain(
-      'Role must be one of: ADMIN, USER',
-    );
+    expect(
+      errorsFor(CreateUserDto, { email: EMAIL, role: 'SUPERADMIN' }),
+    ).toContain('Role must be one of: ADMIN, USER');
   });
 });
 
@@ -53,18 +57,21 @@ describe('UserPreferenceDto (EF-04, EF-05)', () => {
     ).toEqual([]);
   });
 
-  it.each([
-    ['CALM'],
-    ['FAMILY'],
-    ['ANIMATED'],
-    ['SUPPORTERS'],
-  ])('accepts every allowed ambiance value: %s', (favoriteAmbiance) => {
-    expect(errorsFor(UserPreferenceDto, { city: CITY, favoriteAmbiance })).toEqual([]);
-  });
+  it.each([['CALM'], ['FAMILY'], ['ANIMATED'], ['SUPPORTERS']])(
+    'accepts every allowed ambiance value: %s',
+    (favoriteAmbiance) => {
+      expect(
+        errorsFor(UserPreferenceDto, { city: CITY, favoriteAmbiance }),
+      ).toEqual([]);
+    },
+  );
 
   it('rejects an empty city (EF-04)', () => {
     expect(
-      errorsFor(UserPreferenceDto, { city: '', favoriteAmbiance: AmbiancePreference.CALM }),
+      errorsFor(UserPreferenceDto, {
+        city: '',
+        favoriteAmbiance: AmbiancePreference.CALM,
+      }),
     ).toContain('City is required');
   });
 
@@ -78,9 +85,9 @@ describe('UserPreferenceDto (EF-04, EF-05)', () => {
   });
 
   it('rejects an ambiance outside the enum (EF-05)', () => {
-    expect(errorsFor(UserPreferenceDto, { city: CITY, favoriteAmbiance: 'PARTY' })).toContain(
-      'Ambiance must be one of: CALM, FAMILY, ANIMATED, SUPPORTERS',
-    );
+    expect(
+      errorsFor(UserPreferenceDto, { city: CITY, favoriteAmbiance: 'PARTY' }),
+    ).toContain('Ambiance must be one of: CALM, FAMILY, ANIMATED, SUPPORTERS');
   });
 });
 
@@ -91,7 +98,9 @@ describe('UpdateUserPreferenceDto (EF-04, EF-05)', () => {
 
   it('accepts an ambiance-only update', () => {
     expect(
-      errorsFor(UpdateUserPreferenceDto, { favoriteAmbiance: AmbiancePreference.FAMILY }),
+      errorsFor(UpdateUserPreferenceDto, {
+        favoriteAmbiance: AmbiancePreference.FAMILY,
+      }),
     ).toEqual([]);
   });
 
@@ -102,9 +111,9 @@ describe('UpdateUserPreferenceDto (EF-04, EF-05)', () => {
   });
 
   it('still rejects an invalid ambiance when present (EF-05)', () => {
-    expect(errorsFor(UpdateUserPreferenceDto, { favoriteAmbiance: 'PARTY' })).toContain(
-      'Ambiance must be one of: CALM, FAMILY, ANIMATED, SUPPORTERS',
-    );
+    expect(
+      errorsFor(UpdateUserPreferenceDto, { favoriteAmbiance: 'PARTY' }),
+    ).toContain('Ambiance must be one of: CALM, FAMILY, ANIMATED, SUPPORTERS');
   });
 });
 
@@ -123,9 +132,9 @@ describe('SetFavoriteTeamsDto (EF-03)', () => {
   });
 
   it('rejects a non-UUID element', () => {
-    expect(errorsFor(SetFavoriteTeamsDto, { teamIds: [UUID_A, 'not-a-uuid'] })).toContain(
-      'Each team ID must be a valid UUID',
-    );
+    expect(
+      errorsFor(SetFavoriteTeamsDto, { teamIds: [UUID_A, 'not-a-uuid'] }),
+    ).toContain('Each team ID must be a valid UUID');
   });
 
   it('rejects a non-array value', () => {

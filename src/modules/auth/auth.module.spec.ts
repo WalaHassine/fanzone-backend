@@ -35,7 +35,11 @@ describe('AuthModule (ENF-08)', () => {
           isGlobal: true,
           load: [
             () => ({
-              jwt: { secret: 'test-secret', expiration: '1h', expiresInSeconds: 3600 },
+              jwt: {
+                secret: 'test-secret',
+                expiration: '1h',
+                expiresInSeconds: 3600,
+              },
             }),
           ],
         }),

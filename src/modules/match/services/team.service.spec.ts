@@ -12,7 +12,10 @@ const CREATED_AT = new Date('2026-07-27T10:15:00.000Z');
 const FLAG = 'https://cdn.example.com/flags/fra.png';
 
 type RepoMock<T extends ObjectLiteral> = jest.Mocked<
-  Pick<Repository<T>, 'findOne' | 'find' | 'create' | 'save' | 'createQueryBuilder'>
+  Pick<
+    Repository<T>,
+    'findOne' | 'find' | 'create' | 'save' | 'createQueryBuilder'
+  >
 >;
 
 /** Chainable QueryBuilder stub: `where` returns `this`; `getOne` resolves the row. */
@@ -172,7 +175,7 @@ describe('TeamService', () => {
       expect(teamRepo.save).not.toHaveBeenCalled();
     });
 
-    it('allows re-submitting the team\'s own name (self is not a conflict)', async () => {
+    it("allows re-submitting the team's own name (self is not a conflict)", async () => {
       const existing = makeTeam();
       teamRepo.findOne.mockResolvedValue(existing);
       stubFindByName(existing); // same id -> no conflict

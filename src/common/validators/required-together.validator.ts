@@ -42,7 +42,7 @@ export function RequiredTogether(
   return (target: object) => {
     registerDecorator({
       name: `requiredTogether_${key}`,
-      target: (target as { new (...args: unknown[]): unknown }),
+      target: target as { new (...args: unknown[]): unknown },
       propertyName: `__requiredTogether_${key}__`,
       constraints: [fields],
       options: validationOptions,

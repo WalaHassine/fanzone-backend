@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsISO8601, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 import { MatchStatus } from '../entities/match.entity';
 import { AtLeastOneField } from '../../../common/validators/at-least-one-field.validator';
@@ -18,10 +25,13 @@ import { STADIUM_MAX_LENGTH } from './create-match.dto';
  * rather than spread across a base class and a mixin — matching the convention
  * established by UpdateUserPreferenceDto.
  */
-@AtLeastOneField(['homeTeamId', 'awayTeamId', 'matchDate', 'stadium', 'status'], {
-  message:
-    'At least one of homeTeamId, awayTeamId, matchDate, stadium, status must be provided',
-})
+@AtLeastOneField(
+  ['homeTeamId', 'awayTeamId', 'matchDate', 'stadium', 'status'],
+  {
+    message:
+      'At least one of homeTeamId, awayTeamId, matchDate, stadium, status must be provided',
+  },
+)
 export class UpdateMatchDto {
   @ApiPropertyOptional({
     description: 'UUID of the home team (TeamEntity.id)',

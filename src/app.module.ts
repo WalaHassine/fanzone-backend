@@ -32,7 +32,7 @@ import { AppService } from './app.service';
 
 /**
  * Root Application Module
- * 
+ *
  * This module:
  * - Configures environment variables
  * - Sets up database connection
@@ -70,7 +70,7 @@ import { AppService } from './app.service';
     /**
      * Feature Modules
      * Each module handles its specific domain:
-     * 
+     *
      * Auth: Registration, login, JWT tokens
      * User: Profile management, preferences
      * Match: FIFA World Cup matches
@@ -155,18 +155,17 @@ export class AppModule {
    * - Log that app is starting
    * - Could verify critical services
    */
-  constructor(
-    private configService: ConfigService,
-  ) {
+  constructor(private configService: ConfigService) {
     const nodeEnv = this.configService.get<string>('NODE_ENV') || 'development';
     const port = this.configService.get<number>('APP_PORT') || 3000;
-    const database = this.configService.get<string>('DATABASE_NAME') ?? 'unknown';
+    const database =
+      this.configService.get<string>('DATABASE_NAME') ?? 'unknown';
 
     console.log(`
     ╔═════════════════════════════════════════════════════════╗
     ║  World Cup FanZone AI Backend                           ║
     ║  Environment: ${nodeEnv.toUpperCase().padEnd(36)} ║
-    ║  Listening on port: ${port!.toString().padEnd(35)} ║
+    ║  Listening on port: ${port.toString().padEnd(35)} ║
     ║  Database: ${database.padEnd(42)} ║
     ╚═════════════════════════════════════════════════════════╝
     `);
