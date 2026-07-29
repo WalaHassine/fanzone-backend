@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, IsUrl, Matches, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 /**
  * Upper bounds mirroring the `teams` columns on TeamEntity, so validation
@@ -44,7 +51,7 @@ export class CreateTeamDto {
   })
   @Matches(TEAM_NAME_PATTERN, {
     message:
-      "Name may only contain letters, spaces, hyphens, apostrophes and periods",
+      'Name may only contain letters, spaces, hyphens, apostrophes and periods',
   })
   name!: string;
 
@@ -58,7 +65,9 @@ export class CreateTeamDto {
     minLength: TEAM_CODE_LENGTH,
     maxLength: TEAM_CODE_LENGTH,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.toUpperCase() : value,
+  )
   @IsString()
   @IsNotEmpty({ message: 'Code is required' })
   @Matches(TEAM_CODE_PATTERN, {

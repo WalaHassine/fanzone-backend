@@ -15,7 +15,12 @@ import {
 } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
-import { AuthResponseDto, LoginDto, ProfileResponseDto, RegisterDto } from './dto';
+import {
+  AuthResponseDto,
+  LoginDto,
+  ProfileResponseDto,
+  RegisterDto,
+} from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';

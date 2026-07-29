@@ -62,7 +62,9 @@ export class MatchService {
   private assertFutureDate(iso: string): Date {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) {
-      throw new BadRequestException('matchDate must be a datetime in the future');
+      throw new BadRequestException(
+        'matchDate must be a datetime in the future',
+      );
     }
     return date;
   }

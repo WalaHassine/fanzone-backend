@@ -13,6 +13,17 @@ import { CheckinEntity } from '../../checkin/entities/checkin.entity';
 import { RecommendationEntity } from '../../recommendation/entities/recommendation.entity';
 import { AdminStatisticEntity } from '../../admin/entities/admin.entity';
 
+/**
+ * A GeoJSON Point, the shape TypeORM exchanges with a PostGIS geometry column.
+ *
+ * `coordinates` is `[longitude, latitude]` — GeoJSON orders them x-then-y, the
+ * opposite of how coordinates are usually spoken.
+ */
+export interface GeoJsonPoint {
+  type: 'Point';
+  coordinates: [number, number];
+}
+
 @Entity('fanzones')
 export class FanzoneEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -30,15 +41,21 @@ export class FanzoneEntity {
   @Column({ type: 'numeric', precision: 11, scale: 8 })
   longitude!: number;
 
-  // PostGIS Geography column for geospatial queries
-  // Format: POINT(longitude latitude) or GeoJSON
+  // PostGIS geometry column for geospatial queries.
+  //
+  // GeoJSON, not WKT: TypeORM's Postgres driver JSON-stringifies whatever is
+  // assigned here and wraps the parameter in
+  // `ST_SetSRID(ST_GeomFromGeoJSON($n), 4326)` on write, then reads the column
+  // back through `ST_AsGeoJSON(...)::json`. A WKT or EWKT string therefore
+  // reaches ST_GeomFromGeoJSON as a quoted JSON string and the insert fails.
+  // The SRID comes from this decorator, so the value itself carries none.
   @Column({
     type: 'geometry',
     spatialFeatureType: 'Point',
     srid: 4326,
     nullable: true,
   })
-  location!: string; // WKT format: POINT(longitude latitude)
+  location!: GeoJsonPoint;
 
   @Column({ type: 'integer', default: 0 })
   capacity!: number;

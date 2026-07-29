@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Import entities
 import { FanzoneEntity } from './entities/fanzone.entity';
+import { TeamEntity } from '../match/entities/team.entity';
+import { CheckinEntity } from '../checkin/entities/checkin.entity';
 
 // Import services
 import { FanzoneService } from './fanzone.service';
@@ -15,14 +17,14 @@ import { CheckinModule } from '../checkin/checkin.module';
 
 /**
  * FanZone Module
- * 
+ *
  * Responsibilities:
  * - Fan zone management (viewing venues)
  * - Geographic data handling (latitude, longitude)
  * - Crowd status aggregation (anonymous)
  * - Distance filtering (requires PostGIS)
  * - Fan zone availability tracking
- * 
+ *
  * Exports:
  * - FanzoneService: Used by RecommendationModule, CheckinModule
  * - TypeOrmModule: For accessing entities
@@ -31,10 +33,17 @@ import { CheckinModule } from '../checkin/checkin.module';
   imports: [
     /**
      * TypeORM Module
-     * - Register FanzoneEntity
-     * - Provides Repository<FanzoneEntity>
+     * - Register FanzoneEntity, plus TeamEntity and CheckinEntity
+     * - Provides Repository<FanzoneEntity>, Repository<TeamEntity>,
+     *   Repository<CheckinEntity>
+     *
+     * FanzoneService needs all three: teams to validate `teamIds` and to write
+     * the `fanzone_teams` join rows, check-ins to aggregate crowd status.
+     * They are registered here rather than taken from CheckinModule's and
+     * MatchModule's re-exported TypeOrmModule so repository resolution does not
+     * depend on the forwardRef cycle below.
      */
-    TypeOrmModule.forFeature([FanzoneEntity]),
+    TypeOrmModule.forFeature([FanzoneEntity, TeamEntity, CheckinEntity]),
 
     /**
      * CheckIn Module
@@ -61,9 +70,6 @@ import { CheckinModule } from '../checkin/checkin.module';
    * - FanzoneService: Required by RecommendationModule, CheckinModule
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    FanzoneService,
-    TypeOrmModule,
-  ],
+  exports: [FanzoneService, TypeOrmModule],
 })
 export class FanzoneModule {}

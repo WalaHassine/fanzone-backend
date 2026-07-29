@@ -5,11 +5,7 @@ export type AppConfig = {
   port: number;
 };
 
-export default registerAs(
-  'app',
-  (): AppConfig => ({
-    nodeEnv: process.env.NODE_ENV ?? 'development',
-    port: Number(process.env.PORT ?? 3000),
-  }),
-);
-
+export default registerAs('app', (): AppConfig => ({
+  nodeEnv: process.env.NODE_ENV ?? 'development',
+  port: Number(process.env.PORT ?? 3000),
+}));

@@ -9,13 +9,20 @@ import { TeamEntity } from '../entities/team.entity';
 
 const MATCH_ID = 'match-uuid-1';
 const TEAM_A = { id: 'team-uuid-a', name: 'France', code: 'FRA' } as TeamEntity;
-const TEAM_B = { id: 'team-uuid-b', name: 'Tunisia', code: 'TUN' } as TeamEntity;
+const TEAM_B = {
+  id: 'team-uuid-b',
+  name: 'Tunisia',
+  code: 'TUN',
+} as TeamEntity;
 const FUTURE = '2099-11-21T16:00:00.000Z';
 const PAST = '2000-01-01T00:00:00.000Z';
 const STADIUM = 'Lusail Stadium';
 
 type RepoMock<T extends ObjectLiteral> = jest.Mocked<
-  Pick<Repository<T>, 'findOne' | 'find' | 'create' | 'save' | 'createQueryBuilder'>
+  Pick<
+    Repository<T>,
+    'findOne' | 'find' | 'create' | 'save' | 'createQueryBuilder'
+  >
 >;
 
 /** Chainable QueryBuilder stub: every builder call returns `this`; getMany resolves the rows. */
@@ -139,8 +146,14 @@ describe('MatchService', () => {
 
       const result = await service.findAll();
 
-      expect(qb.leftJoinAndSelect).toHaveBeenCalledWith('match.homeTeam', 'homeTeam');
-      expect(qb.leftJoinAndSelect).toHaveBeenCalledWith('match.awayTeam', 'awayTeam');
+      expect(qb.leftJoinAndSelect).toHaveBeenCalledWith(
+        'match.homeTeam',
+        'homeTeam',
+      );
+      expect(qb.leftJoinAndSelect).toHaveBeenCalledWith(
+        'match.awayTeam',
+        'awayTeam',
+      );
       expect(qb.andWhere).not.toHaveBeenCalled();
       expect(qb.orderBy).toHaveBeenCalledWith('match.matchDate', 'ASC');
       expect(result).toBe(rows);
@@ -168,9 +181,12 @@ describe('MatchService', () => {
         status: MatchStatus.COMPLETED,
       });
 
-      expect(qb.andWhere).toHaveBeenCalledWith('match.matchDate >= :startDate', {
-        startDate: FUTURE,
-      });
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'match.matchDate >= :startDate',
+        {
+          startDate: FUTURE,
+        },
+      );
       expect(qb.andWhere).toHaveBeenCalledWith('match.matchDate <= :endDate', {
         endDate: FUTURE,
       });
@@ -204,9 +220,9 @@ describe('MatchService', () => {
     it('throws NotFoundException when the match is missing', async () => {
       matchRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update(MATCH_ID, { stadium: STADIUM })).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.update(MATCH_ID, { stadium: STADIUM }),
+      ).rejects.toThrow(NotFoundException);
       expect(matchRepo.save).not.toHaveBeenCalled();
     });
 
@@ -238,7 +254,9 @@ describe('MatchService', () => {
         .mockResolvedValueOnce(reloaded);
       matchRepo.save.mockResolvedValue(existing);
 
-      const result = await service.update(MATCH_ID, { status: MatchStatus.LIVE });
+      const result = await service.update(MATCH_ID, {
+        status: MatchStatus.LIVE,
+      });
 
       expect(existing.status).toBe(MatchStatus.LIVE);
       expect(matchRepo.save).toHaveBeenCalledWith(existing);

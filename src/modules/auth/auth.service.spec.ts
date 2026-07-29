@@ -45,7 +45,10 @@ describe('AuthService', () => {
         AuthService,
         { provide: UserService, useValue: userService },
         { provide: JwtService, useValue: jwtService },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue(EXPIRES_IN) } },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue(EXPIRES_IN) },
+        },
       ],
     }).compile();
 
@@ -58,7 +61,12 @@ describe('AuthService', () => {
     beforeEach(() => {
       userService.createUser.mockImplementation(
         async (email: string, passwordHash: string) =>
-          ({ id: 'user-uuid-1', email, passwordHash, role: UserRole.USER } as UserEntity),
+          ({
+            id: 'user-uuid-1',
+            email,
+            passwordHash,
+            role: UserRole.USER,
+          }) as UserEntity,
       );
     });
 
@@ -79,7 +87,10 @@ describe('AuthService', () => {
     });
 
     it('normalizes the email to lowercase before lookup and creation', async () => {
-      await service.register({ email: '  FAN@WorldCup.COM  ', password: PASSWORD });
+      await service.register({
+        email: '  FAN@WorldCup.COM  ',
+        password: PASSWORD,
+      });
 
       expect(userService.findByEmail).toHaveBeenCalledWith(EMAIL);
       expect(userService.createUser.mock.calls[0][0]).toBe(EMAIL);
@@ -88,16 +99,23 @@ describe('AuthService', () => {
     it('throws BadRequestException when the email is already registered', async () => {
       userService.findByEmail.mockResolvedValue(await makeUser());
 
-      await expect(service.register({ email: EMAIL, password: PASSWORD })).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.register({ email: EMAIL, password: PASSWORD }),
+      ).rejects.toThrow(BadRequestException);
       expect(userService.createUser).not.toHaveBeenCalled();
     });
 
     it('returns only accessToken, expiresIn and tokenType — no password data', async () => {
-      const result = await service.register({ email: EMAIL, password: PASSWORD });
+      const result = await service.register({
+        email: EMAIL,
+        password: PASSWORD,
+      });
 
-      expect(Object.keys(result).sort()).toEqual(['accessToken', 'expiresIn', 'tokenType']);
+      expect(Object.keys(result).sort()).toEqual([
+        'accessToken',
+        'expiresIn',
+        'tokenType',
+      ]);
       expect(JSON.stringify(result)).not.toContain(PASSWORD);
       expect(JSON.stringify(result)).not.toContain('$2b$');
     });
@@ -119,7 +137,10 @@ describe('AuthService', () => {
     it('normalizes the email to lowercase before lookup', async () => {
       userService.findByEmail.mockResolvedValue(await makeUser());
 
-      await service.login({ email: '  FAN@WorldCup.COM  ', password: PASSWORD });
+      await service.login({
+        email: '  FAN@WorldCup.COM  ',
+        password: PASSWORD,
+      });
 
       expect(userService.findByEmail).toHaveBeenCalledWith(EMAIL);
     });
@@ -127,9 +148,9 @@ describe('AuthService', () => {
     it('throws UnauthorizedException when the email is unknown', async () => {
       userService.findByEmail.mockResolvedValue(null);
 
-      await expect(service.login({ email: EMAIL, password: PASSWORD })).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.login({ email: EMAIL, password: PASSWORD }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException when the password is wrong', async () => {
@@ -142,7 +163,9 @@ describe('AuthService', () => {
 
     it('uses an identical message for unknown email and wrong password', async () => {
       userService.findByEmail.mockResolvedValue(null);
-      const unknownEmail = await service.login({ email: EMAIL, password: PASSWORD }).catch((e) => e);
+      const unknownEmail = await service
+        .login({ email: EMAIL, password: PASSWORD })
+        .catch((e) => e);
 
       userService.findByEmail.mockResolvedValue(await makeUser());
       const wrongPassword = await service
@@ -161,7 +184,9 @@ describe('AuthService', () => {
       userService.findByEmail.mockResolvedValue(null);
 
       const start = Date.now();
-      await service.login({ email: EMAIL, password: PASSWORD }).catch(() => undefined);
+      await service
+        .login({ email: EMAIL, password: PASSWORD })
+        .catch(() => undefined);
       const elapsed = Date.now() - start;
 
       expect(elapsed).toBeGreaterThan(20);
@@ -172,14 +197,20 @@ describe('AuthService', () => {
 
       const result = await service.login({ email: EMAIL, password: PASSWORD });
 
-      expect(Object.keys(result).sort()).toEqual(['accessToken', 'expiresIn', 'tokenType']);
+      expect(Object.keys(result).sort()).toEqual([
+        'accessToken',
+        'expiresIn',
+        'tokenType',
+      ]);
       expect(JSON.stringify(result)).not.toContain(PASSWORD);
     });
   });
 
   describe('generateTokens (EF-02)', () => {
     it('signs the { sub, email, role } payload JwtStrategy expects', async () => {
-      userService.findByEmail.mockResolvedValue(await makeUser(EMAIL, PASSWORD, UserRole.ADMIN));
+      userService.findByEmail.mockResolvedValue(
+        await makeUser(EMAIL, PASSWORD, UserRole.ADMIN),
+      );
 
       await service.login({ email: EMAIL, password: PASSWORD });
 

@@ -17,21 +17,21 @@ import { MatchModule } from '../match/match.module';
 
 /**
  * Alert Module
- * 
+ *
  * Responsibilities:
  * - Create alerts for favorite team matches
  * - Schedule alert delivery
  * - Trigger alerts at scheduled time
  * - Track alert status (PENDING, SENT, DISMISSED)
  * - User alert management
- * 
+ *
  * Key Features:
  * - Scheduled polling to check for triggered alerts
  * - Alert time customization
  * - Status tracking
  * - MVP: In-app notifications
  * - Future: Email, push notifications
- * 
+ *
  * Exports:
  * - AlertService: Used by other modules
  * - TypeOrmModule: For accessing entities
@@ -84,9 +84,6 @@ import { MatchModule } from '../match/match.module';
    * - AlertService: Can be used by other modules
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    AlertService,
-    TypeOrmModule,
-  ],
+  exports: [AlertService, TypeOrmModule],
 })
 export class AlertModule {}

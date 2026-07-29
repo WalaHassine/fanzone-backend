@@ -9,19 +9,25 @@ type Ctor<T> = new () => T;
 
 function errorsFor<T extends object>(cls: Ctor<T>, payload: object): string[] {
   const instance = plainToInstance(cls, payload);
-  return validateSync(instance).flatMap((e) => Object.values(e.constraints ?? {}));
+  return validateSync(instance).flatMap((e) =>
+    Object.values(e.constraints ?? {}),
+  );
 }
 
 const EMAIL = 'fan@worldcup.com';
 
 describe('RegisterDto (EF-01)', () => {
   it('accepts a password meeting every strength requirement', () => {
-    expect(errorsFor(RegisterDto, { email: EMAIL, password: 'Passw0rd!' })).toEqual([]);
+    expect(
+      errorsFor(RegisterDto, { email: EMAIL, password: 'Passw0rd!' }),
+    ).toEqual([]);
   });
 
   it('accepts special characters outside the required set', () => {
     // The regex requires one of @$!%*?& but does not restrict the alphabet.
-    expect(errorsFor(RegisterDto, { email: EMAIL, password: 'Passw0rd!#-' })).toEqual([]);
+    expect(
+      errorsFor(RegisterDto, { email: EMAIL, password: 'Passw0rd!#-' }),
+    ).toEqual([]);
   });
 
   it.each([
@@ -38,15 +44,15 @@ describe('RegisterDto (EF-01)', () => {
   });
 
   it('rejects a password shorter than 8 characters', () => {
-    expect(errorsFor(RegisterDto, { email: EMAIL, password: 'Pass0!' })).toContain(
-      'Password must be at least 8 characters long',
-    );
+    expect(
+      errorsFor(RegisterDto, { email: EMAIL, password: 'Pass0!' }),
+    ).toContain('Password must be at least 8 characters long');
   });
 
   it('rejects a malformed email', () => {
-    expect(errorsFor(RegisterDto, { email: 'not-an-email', password: 'Passw0rd!' })).toContain(
-      'Email must be a valid email address',
-    );
+    expect(
+      errorsFor(RegisterDto, { email: 'not-an-email', password: 'Passw0rd!' }),
+    ).toContain('Email must be a valid email address');
   });
 });
 
@@ -65,9 +71,9 @@ describe('LoginDto (EF-02)', () => {
   });
 
   it('still enforces email format', () => {
-    expect(errorsFor(LoginDto, { email: 'nope', password: 'password' })).toContain(
-      'Email must be a valid email address',
-    );
+    expect(
+      errorsFor(LoginDto, { email: 'nope', password: 'password' }),
+    ).toContain('Email must be a valid email address');
   });
 });
 
@@ -82,7 +88,12 @@ describe('parseDurationToSeconds (EF-02)', () => {
     expect(parseDurationToSeconds(input)).toBe(expected);
   });
 
-  it.each([['abc'], ['1y'], [''], ['1 h']])('throws on unparseable value: "%s"', (input) => {
-    expect(() => parseDurationToSeconds(input)).toThrow(/Invalid JWT_EXPIRATION/);
-  });
+  it.each([['abc'], ['1y'], [''], ['1 h']])(
+    'throws on unparseable value: "%s"',
+    (input) => {
+      expect(() => parseDurationToSeconds(input)).toThrow(
+        /Invalid JWT_EXPIRATION/,
+      );
+    },
+  );
 });

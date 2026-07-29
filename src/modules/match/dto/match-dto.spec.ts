@@ -11,7 +11,9 @@ type Ctor<T> = new () => T;
 
 function errorsFor<T extends object>(cls: Ctor<T>, payload: object): string[] {
   const instance = plainToInstance(cls, payload);
-  return validateSync(instance).flatMap((e) => Object.values(e.constraints ?? {}));
+  return validateSync(instance).flatMap((e) =>
+    Object.values(e.constraints ?? {}),
+  );
 }
 
 const UUID_A = '3f0c9b7e-1a2b-4c3d-9e8f-0a1b2c3d4e5f';

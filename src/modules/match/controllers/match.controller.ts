@@ -162,7 +162,10 @@ export class MatchController {
   @ApiResponse({ status: 400, description: 'Invalid data or past match date' })
   @ApiResponse({ status: 401, description: 'Missing or invalid token' })
   @ApiResponse({ status: 403, description: 'Caller is not an admin' })
-  @ApiResponse({ status: 404, description: 'Match or referenced team not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Match or referenced team not found',
+  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateMatchDto,

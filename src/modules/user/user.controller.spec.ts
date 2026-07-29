@@ -70,7 +70,10 @@ describe('UserController', () => {
       const dto = { city: 'Doha' };
       await controller.updatePreferences(USER, dto);
 
-      expect(userService.updatePreferences).toHaveBeenCalledWith(USER.userId, dto);
+      expect(userService.updatePreferences).toHaveBeenCalledWith(
+        USER.userId,
+        dto,
+      );
     });
 
     it('returns only the mapped preference fields — no userId or timestamps leak', async () => {
@@ -87,7 +90,10 @@ describe('UserController', () => {
         favoriteAmbiance: AmbiancePreference.CALM,
       });
 
-      expect(result).toEqual({ city: 'Doha', favoriteAmbiance: AmbiancePreference.CALM });
+      expect(result).toEqual({
+        city: 'Doha',
+        favoriteAmbiance: AmbiancePreference.CALM,
+      });
       expect(Object.keys(result).sort()).toEqual(['city', 'favoriteAmbiance']);
     });
   });
@@ -98,13 +104,19 @@ describe('UserController', () => {
 
       const result = await controller.setFavoriteTeams(USER, dto);
 
-      expect(userService.setFavoriteTeams).toHaveBeenCalledWith(USER.userId, dto.teamIds);
+      expect(userService.setFavoriteTeams).toHaveBeenCalledWith(
+        USER.userId,
+        dto.teamIds,
+      );
       expect(result).toEqual({ message: 'Favorite teams updated' });
     });
 
     it('responds with 200, not the default 201 for POST', () => {
       // @HttpCode(200) overrides the create-default so this reads as a replace.
-      const code = Reflect.getMetadata('__httpCode__', controller.setFavoriteTeams);
+      const code = Reflect.getMetadata(
+        '__httpCode__',
+        controller.setFavoriteTeams,
+      );
       expect(code).toBe(HttpStatus.OK);
     });
   });

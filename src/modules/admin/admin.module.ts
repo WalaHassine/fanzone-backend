@@ -18,21 +18,21 @@ import { FanzoneModule } from '../fanzone/fanzone.module';
 
 /**
  * Admin Module
- * 
+ *
  * Responsibilities:
  * - Calculate daily statistics
  * - Aggregate check-in data
  * - Track recommendations
  * - Identify top fan zones
  * - Provide analytics dashboard
- * 
+ *
  * Key Features:
  * - Daily aggregation job (runs at midnight)
  * - Historical statistics tracking
  * - Unique user counting
  * - Top fan zone identification
  * - Recommendation metrics
- * 
+ *
  * Exports:
  * - AdminService: For querying statistics
  * - TypeOrmModule: For accessing entities
@@ -92,9 +92,6 @@ import { FanzoneModule } from '../fanzone/fanzone.module';
    * - AdminService: For querying stats
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    AdminService,
-    TypeOrmModule,
-  ],
+  exports: [AdminService, TypeOrmModule],
 })
 export class AdminModule {}

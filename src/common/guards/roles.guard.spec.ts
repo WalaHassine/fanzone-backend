@@ -24,8 +24,16 @@ describe('RolesGuard (ENF-04)', () => {
   let reflector: { getAllAndOverride: jest.Mock };
 
   /** The shape JwtStrategy.validate() attaches to req.user. */
-  const adminUser = { userId: 'u-1', email: 'admin@worldcup.com', role: UserRole.ADMIN };
-  const normalUser = { userId: 'u-2', email: 'fan@worldcup.com', role: UserRole.USER };
+  const adminUser = {
+    userId: 'u-1',
+    email: 'admin@worldcup.com',
+    role: UserRole.ADMIN,
+  };
+  const normalUser = {
+    userId: 'u-2',
+    email: 'fan@worldcup.com',
+    role: UserRole.USER,
+  };
 
   beforeEach(() => {
     reflector = { getAllAndOverride: jest.fn() };
@@ -63,7 +71,10 @@ describe('RolesGuard (ENF-04)', () => {
   });
 
   it('grants access when the user role is one of several allowed roles', () => {
-    reflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN, UserRole.USER]);
+    reflector.getAllAndOverride.mockReturnValue([
+      UserRole.ADMIN,
+      UserRole.USER,
+    ]);
 
     expect(guard.canActivate(makeContext(normalUser))).toBe(true);
   });

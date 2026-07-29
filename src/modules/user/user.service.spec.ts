@@ -43,15 +43,33 @@ describe('UserService', () => {
   }
 
   beforeEach(async () => {
-    userRepo = { findOne: jest.fn(), find: jest.fn(), create: jest.fn(), save: jest.fn() };
-    preferenceRepo = { findOne: jest.fn(), find: jest.fn(), create: jest.fn(), save: jest.fn() };
-    teamRepo = { findOne: jest.fn(), find: jest.fn(), create: jest.fn(), save: jest.fn() };
+    userRepo = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+    preferenceRepo = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+    teamRepo = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         { provide: getRepositoryToken(UserEntity), useValue: userRepo },
-        { provide: getRepositoryToken(UserPreferenceEntity), useValue: preferenceRepo },
+        {
+          provide: getRepositoryToken(UserPreferenceEntity),
+          useValue: preferenceRepo,
+        },
         { provide: getRepositoryToken(TeamEntity), useValue: teamRepo },
       ],
     }).compile();
@@ -91,7 +109,9 @@ describe('UserService', () => {
         favoriteAmbiance: AmbiancePreference.CALM,
       } as UserPreferenceEntity;
       preferenceRepo.findOne.mockResolvedValue(existing);
-      preferenceRepo.save.mockImplementation(async (p) => p as UserPreferenceEntity);
+      preferenceRepo.save.mockImplementation(
+        async (p) => p as UserPreferenceEntity,
+      );
 
       const result = await service.updatePreferences(USER_ID, { city: CITY });
 
@@ -103,8 +123,12 @@ describe('UserService', () => {
 
     it('creates a new preferences row when none exists', async () => {
       preferenceRepo.findOne.mockResolvedValue(null);
-      preferenceRepo.create.mockImplementation((p) => p as UserPreferenceEntity);
-      preferenceRepo.save.mockImplementation(async (p) => p as UserPreferenceEntity);
+      preferenceRepo.create.mockImplementation(
+        (p) => p as UserPreferenceEntity,
+      );
+      preferenceRepo.save.mockImplementation(
+        async (p) => p as UserPreferenceEntity,
+      );
 
       const result = await service.updatePreferences(USER_ID, {
         city: CITY,
@@ -148,7 +172,10 @@ describe('UserService', () => {
         email: EMAIL,
         role: UserRole.USER,
         favoriteTeams: ['France', 'Tunisia'],
-        preferences: { city: CITY, favoriteAmbiance: AmbiancePreference.ANIMATED },
+        preferences: {
+          city: CITY,
+          favoriteAmbiance: AmbiancePreference.ANIMATED,
+        },
         createdAt: user.createdAt,
       });
     });
@@ -174,7 +201,9 @@ describe('UserService', () => {
     it('throws NotFoundException when the user does not exist', async () => {
       userRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.getProfile(USER_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.getProfile(USER_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

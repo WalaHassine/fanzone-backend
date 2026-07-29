@@ -49,7 +49,10 @@ describe('Guards (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         PassportModule,
-        JwtModule.register({ secret: TEST_SECRET, signOptions: { expiresIn: '1h' } }),
+        JwtModule.register({
+          secret: TEST_SECRET,
+          signOptions: { expiresIn: '1h' },
+        }),
       ],
       controllers: [SmokeController],
       providers: [
@@ -64,8 +67,16 @@ describe('Guards (e2e)', () => {
 
     // Tokens match the { sub, email, role } payload JwtStrategy expects.
     const jwt = moduleFixture.get(JwtService);
-    userToken = jwt.sign({ sub: 'u-1', email: 'fan@worldcup.com', role: UserRole.USER });
-    adminToken = jwt.sign({ sub: 'a-1', email: 'admin@worldcup.com', role: UserRole.ADMIN });
+    userToken = jwt.sign({
+      sub: 'u-1',
+      email: 'fan@worldcup.com',
+      role: UserRole.USER,
+    });
+    adminToken = jwt.sign({
+      sub: 'a-1',
+      email: 'admin@worldcup.com',
+      role: UserRole.ADMIN,
+    });
   });
 
   afterAll(async () => {
@@ -75,7 +86,9 @@ describe('Guards (e2e)', () => {
   const bearer = (token: string) => `Bearer ${token}`;
 
   it('allows an unauthenticated request to a @Public() route (200)', () => {
-    return request(app.getHttpServer()).get('/smoke/public').expect(200, { route: 'public' });
+    return request(app.getHttpServer())
+      .get('/smoke/public')
+      .expect(200, { route: 'public' });
   });
 
   it('rejects an unauthenticated request to a protected route (401)', () => {

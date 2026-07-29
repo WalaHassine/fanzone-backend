@@ -71,7 +71,11 @@ describe('AuthController', () => {
   });
 
   describe('getProfile (EF-02)', () => {
-    const user: AuthUser = { userId: 'user-uuid-1', email: EMAIL, role: UserRole.USER };
+    const user: AuthUser = {
+      userId: 'user-uuid-1',
+      email: EMAIL,
+      role: UserRole.USER,
+    };
 
     it('returns only userId and email from the authenticated user', () => {
       expect(controller.getProfile(user)).toEqual({

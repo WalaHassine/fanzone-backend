@@ -86,7 +86,8 @@ export class UserController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid body, or city required when setting preferences the first time',
+    description:
+      'Invalid body, or city required when setting preferences the first time',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,

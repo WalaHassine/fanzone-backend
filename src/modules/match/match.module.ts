@@ -15,13 +15,13 @@ import { TeamController } from './controllers/team.controller';
 
 /**
  * Match Module
- * 
+ *
  * Responsibilities:
  * - Team management (FIFA World Cup teams)
  * - Match management (World Cup matches)
  * - Match filtering by team, date, status
  * - Team CRUD operations
- * 
+ *
  * Exports:
  * - MatchService: Used by RecommendationModule, AlertModule
  * - TeamService: Used by other modules for team data
@@ -42,20 +42,14 @@ import { TeamController } from './controllers/team.controller';
    * - MatchService: Match CRUD and filtering
    * - TeamService: Team CRUD operations
    */
-  providers: [
-    MatchService,
-    TeamService,
-  ],
+  providers: [MatchService, TeamService],
 
   /**
    * Controllers for this module
    * - MatchController: Handles /matches endpoints
    * - TeamController: Handles /teams endpoints (optional)
    */
-  controllers: [
-    MatchController,
-    TeamController,
-  ],
+  controllers: [MatchController, TeamController],
 
   /**
    * Exports
@@ -63,10 +57,6 @@ import { TeamController } from './controllers/team.controller';
    * - TeamService: Required by UserModule (favorite teams)
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    MatchService,
-    TeamService,
-    TypeOrmModule,
-  ],
+  exports: [MatchService, TeamService, TypeOrmModule],
 })
 export class MatchModule {}

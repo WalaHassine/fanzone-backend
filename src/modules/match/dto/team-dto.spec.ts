@@ -9,7 +9,9 @@ type Ctor<T> = new () => T;
 
 function errorsFor<T extends object>(cls: Ctor<T>, payload: object): string[] {
   const instance = plainToInstance(cls, payload);
-  return validateSync(instance).flatMap((e) => Object.values(e.constraints ?? {}));
+  return validateSync(instance).flatMap((e) =>
+    Object.values(e.constraints ?? {}),
+  );
 }
 
 const FLAG = 'https://cdn.example.com/flags/fra.png';
@@ -44,14 +46,18 @@ describe('CreateTeamDto', () => {
   });
 
   it('rejects a name containing a digit', () => {
-    expect(errorsFor(CreateTeamDto, validCreate({ name: 'France2' }))).toContain(
-      "Name may only contain letters, spaces, hyphens, apostrophes and periods",
+    expect(
+      errorsFor(CreateTeamDto, validCreate({ name: 'France2' })),
+    ).toContain(
+      'Name may only contain letters, spaces, hyphens, apostrophes and periods',
     );
   });
 
   it('rejects a name containing a symbol', () => {
-    expect(errorsFor(CreateTeamDto, validCreate({ name: 'Fra@nce' }))).toContain(
-      "Name may only contain letters, spaces, hyphens, apostrophes and periods",
+    expect(
+      errorsFor(CreateTeamDto, validCreate({ name: 'Fra@nce' })),
+    ).toContain(
+      'Name may only contain letters, spaces, hyphens, apostrophes and periods',
     );
   });
 
@@ -68,7 +74,10 @@ describe('CreateTeamDto', () => {
   });
 
   it('uppercases a lowercase code and accepts it', () => {
-    const instance = plainToInstance(CreateTeamDto, validCreate({ code: 'fra' }));
+    const instance = plainToInstance(
+      CreateTeamDto,
+      validCreate({ code: 'fra' }),
+    );
     expect(validateSync(instance)).toEqual([]);
     expect(instance.code).toBe('FRA');
   });
@@ -96,7 +105,10 @@ describe('CreateTeamDto', () => {
 
   it('rejects a flag URL without an http(s) protocol', () => {
     expect(
-      errorsFor(CreateTeamDto, validCreate({ flag: 'ftp://example.com/f.png' })),
+      errorsFor(
+        CreateTeamDto,
+        validCreate({ flag: 'ftp://example.com/f.png' }),
+      ),
     ).toContain('Flag must be a valid http(s) URL');
   });
 });
@@ -124,7 +136,7 @@ describe('UpdateTeamDto', () => {
 
   it('still enforces the name pattern when present', () => {
     expect(errorsFor(UpdateTeamDto, { name: 'France2' })).toContain(
-      "Name may only contain letters, spaces, hyphens, apostrophes and periods",
+      'Name may only contain letters, spaces, hyphens, apostrophes and periods',
     );
   });
 

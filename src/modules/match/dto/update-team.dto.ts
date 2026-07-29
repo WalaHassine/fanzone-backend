@@ -1,6 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString, IsUrl, Matches, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUrl,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 import { AtLeastOneField } from '../../../common/validators/at-least-one-field.validator';
 import {
@@ -37,7 +43,7 @@ export class UpdateTeamDto {
   })
   @Matches(TEAM_NAME_PATTERN, {
     message:
-      "Name may only contain letters, spaces, hyphens, apostrophes and periods",
+      'Name may only contain letters, spaces, hyphens, apostrophes and periods',
   })
   name?: string;
 
@@ -48,7 +54,9 @@ export class UpdateTeamDto {
     maxLength: TEAM_CODE_LENGTH,
   })
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.toUpperCase() : value,
+  )
   @IsString()
   @Matches(TEAM_CODE_PATTERN, {
     message: `Code must be exactly ${TEAM_CODE_LENGTH} alphanumeric characters`,

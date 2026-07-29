@@ -16,13 +16,13 @@ import { MatchModule } from '../match/match.module';
 
 /**
  * User Module
- * 
+ *
  * Responsibilities:
  * - User profile management
  * - User preferences (city, ambiance)
  * - Favorite teams management
  * - User query by email or ID
- * 
+ *
  * Exports:
  * - UserService: Used by AuthModule, other modules
  * - TypeOrmModule: For accessing entities
@@ -61,9 +61,6 @@ import { MatchModule } from '../match/match.module';
    * - UserService: Required by AuthModule for user creation
    * - TypeOrmModule: For using entities in other modules
    */
-  exports: [
-    UserService,
-    TypeOrmModule,
-  ],
+  exports: [UserService, TypeOrmModule],
 })
 export class UserModule {}
