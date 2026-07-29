@@ -129,7 +129,7 @@ describe('FanzoneService', () => {
       description: 'Open-air zone on the Corniche.',
       latitude: LATITUDE,
       longitude: LONGITUDE,
-      location: `SRID=4326;POINT(${LONGITUDE} ${LATITUDE})`,
+      location: { type: 'Point', coordinates: [LONGITUDE, LATITUDE] },
       capacity: 5000,
       availableSpots: 5000,
       address: 'Al Corniche Street, Doha',
@@ -211,7 +211,7 @@ describe('FanzoneService', () => {
 
       expect(fanzoneRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          location: `SRID=4326;POINT(${LONGITUDE} ${LATITUDE})`,
+          location: { type: 'Point', coordinates: [LONGITUDE, LATITUDE] },
           availableSpots: 5000,
           capacity: 5000,
           teams,
@@ -506,7 +506,10 @@ describe('FanzoneService', () => {
 
       await service.update(FANZONE_ID, { latitude: 25.4, longitude: 51.6 });
 
-      expect(existing.location).toBe('SRID=4326;POINT(51.6 25.4)');
+      expect(existing.location).toEqual({
+        type: 'Point',
+        coordinates: [51.6, 25.4],
+      });
     });
 
     it('fills the missing half from the stored value on a longitude-only update', async () => {
@@ -519,7 +522,10 @@ describe('FanzoneService', () => {
 
       await service.update(FANZONE_ID, { longitude: 51.6 });
 
-      expect(existing.location).toBe('SRID=4326;POINT(51.6 25.2854)');
+      expect(existing.location).toEqual({
+        type: 'Point',
+        coordinates: [51.6, 25.2854],
+      });
       expect(existing.latitude).toBe(25.2854);
     });
 
@@ -575,6 +581,59 @@ describe('FanzoneService', () => {
       await service.update(FANZONE_ID, { capacity: 20 });
 
       expect(existing.availableSpots).toBe(20);
+    });
+
+    it('sets availableSpots explicitly when supplied on its own', async () => {
+      const existing = makeFanzone({ capacity: 100, availableSpots: 100 });
+      fanzoneRepo.findOne.mockResolvedValue(existing);
+      fanzoneRepo.save.mockResolvedValue(existing);
+
+      await service.update(FANZONE_ID, { availableSpots: 70 });
+
+      expect(existing.availableSpots).toBe(70);
+      expect(existing.capacity).toBe(100); // untouched
+    });
+
+    it('accepts an explicit availableSpots of 0', async () => {
+      const existing = makeFanzone({ capacity: 100, availableSpots: 40 });
+      fanzoneRepo.findOne.mockResolvedValue(existing);
+      fanzoneRepo.save.mockResolvedValue(existing);
+
+      await service.update(FANZONE_ID, { availableSpots: 0 });
+
+      expect(existing.availableSpots).toBe(0);
+    });
+
+    it('lets an explicit availableSpots win over the capacity-derived value', async () => {
+      // The delta arithmetic alone would give 900; the explicit value overrides it.
+      const existing = makeFanzone({ capacity: 5000, availableSpots: 4000 });
+      fanzoneRepo.findOne.mockResolvedValue(existing);
+      fanzoneRepo.save.mockResolvedValue(existing);
+
+      await service.update(FANZONE_ID, { capacity: 1000, availableSpots: 250 });
+
+      expect(existing.capacity).toBe(1000);
+      expect(existing.availableSpots).toBe(250);
+    });
+
+    it('clamps an explicit availableSpots to the new capacity', async () => {
+      const existing = makeFanzone({ capacity: 5000, availableSpots: 4000 });
+      fanzoneRepo.findOne.mockResolvedValue(existing);
+      fanzoneRepo.save.mockResolvedValue(existing);
+
+      await service.update(FANZONE_ID, { capacity: 100, availableSpots: 900 });
+
+      expect(existing.availableSpots).toBe(100);
+    });
+
+    it('clamps an explicit availableSpots to the stored capacity when capacity is unchanged', async () => {
+      const existing = makeFanzone({ capacity: 100, availableSpots: 50 });
+      fanzoneRepo.findOne.mockResolvedValue(existing);
+      fanzoneRepo.save.mockResolvedValue(existing);
+
+      await service.update(FANZONE_ID, { availableSpots: 400 });
+
+      expect(existing.availableSpots).toBe(100);
     });
 
     it('reloads through findById so team relations reflect the update', async () => {

@@ -312,7 +312,7 @@ describe('UpdateFanzoneDto', () => {
 
   it('rejects an empty body — at least one field must be provided', () => {
     expect(errorsFor(UpdateFanzoneDto, {})).toContain(
-      'At least one of name, description, latitude, longitude, capacity, address, city, openingHour, closingHour, teamIds must be provided',
+      'At least one of name, description, latitude, longitude, capacity, availableSpots, address, city, openingHour, closingHour, teamIds must be provided',
     );
   });
 
@@ -332,6 +332,35 @@ describe('UpdateFanzoneDto', () => {
     expect(errorsFor(UpdateFanzoneDto, { openingHour: '1800' })).toContain(
       'openingHour must be a time in HH:mm format (00:00 to 23:59)',
     );
+  });
+
+  describe('availableSpots', () => {
+    /** On its own it satisfies @AtLeastOneField — it is a real update. */
+    it('accepts an availableSpots-only update', () => {
+      expect(errorsFor(UpdateFanzoneDto, { availableSpots: 70 })).toEqual([]);
+    });
+
+    it('accepts 0 — a full fan zone is a legal state', () => {
+      expect(errorsFor(UpdateFanzoneDto, { availableSpots: 0 })).toEqual([]);
+    });
+
+    it('rejects a negative value', () => {
+      expect(errorsFor(UpdateFanzoneDto, { availableSpots: -1 })).toContain(
+        'availableSpots must be at least 0',
+      );
+    });
+
+    it('rejects a non-integer value', () => {
+      expect(errorsFor(UpdateFanzoneDto, { availableSpots: 70.5 })).toContain(
+        'availableSpots must be an integer',
+      );
+    });
+
+    it('rejects a value above the integer column ceiling', () => {
+      expect(
+        errorsFor(UpdateFanzoneDto, { availableSpots: 2147483648 }),
+      ).toContain('availableSpots must be at most 2147483647');
+    });
   });
 
   /** A supplied array replaces the broadcast set; clearing it is not allowed. */

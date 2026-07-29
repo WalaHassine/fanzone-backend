@@ -63,7 +63,7 @@ describe('FanzoneController', () => {
       description: 'Open-air zone on the Corniche.',
       latitude: '25.28540000',
       longitude: '51.53100000',
-      location: 'SRID=4326;POINT(51.531 25.2854)',
+      location: { type: 'Point', coordinates: [51.531, 25.2854] },
       capacity: 5000,
       availableSpots: 3200,
       address: 'Al Corniche Street, Doha',

@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Import entities
 import { CheckinEntity } from './entities/checkin.entity';
+import { FanzoneEntity } from '../fanzone/entities/fanzone.entity';
+import { TeamEntity } from '../match/entities/team.entity';
 
 // Import services
 import { CheckinService } from './checkin.service';
@@ -36,10 +38,17 @@ import { UserModule } from '../user/user.module';
   imports: [
     /**
      * TypeORM Module
-     * - Register CheckinEntity
-     * - Provides Repository<CheckinEntity>
+     * - Register CheckinEntity, plus FanzoneEntity and TeamEntity
+     * - Provides Repository<CheckinEntity>, Repository<FanzoneEntity>,
+     *   Repository<TeamEntity>
+     *
+     * CheckinService needs all three: the fan zone to check capacity and the
+     * broadcast team set, the team to validate `teamId`. They are registered
+     * here rather than taken from FanzoneModule's re-exported TypeOrmModule so
+     * repository resolution does not depend on the forwardRef cycle below —
+     * mirroring what FanzoneModule does for CheckinEntity.
      */
-    TypeOrmModule.forFeature([CheckinEntity]),
+    TypeOrmModule.forFeature([CheckinEntity, FanzoneEntity, TeamEntity]),
 
     /**
      * FanZone Module

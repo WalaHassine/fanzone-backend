@@ -51,6 +51,7 @@ import {
     'latitude',
     'longitude',
     'capacity',
+    'availableSpots',
     'address',
     'city',
     'openingHour',
@@ -59,7 +60,7 @@ import {
   ],
   {
     message:
-      'At least one of name, description, latitude, longitude, capacity, address, city, openingHour, closingHour, teamIds must be provided',
+      'At least one of name, description, latitude, longitude, capacity, availableSpots, address, city, openingHour, closingHour, teamIds must be provided',
   },
 )
 export class UpdateFanzoneDto {
@@ -127,6 +128,24 @@ export class UpdateFanzoneDto {
     message: `capacity must be at most ${FANZONE_CAPACITY_MAX}`,
   })
   capacity?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Spots still free; occupancy is derived from capacity minus this value. ' +
+      'Normally maintained by check-ins — set it here to correct a drifted count. ' +
+      'Takes precedence over the value derived from a capacity change supplied in ' +
+      'the same request, and is clamped to the resulting capacity.',
+    example: 70,
+    minimum: 0,
+    maximum: FANZONE_CAPACITY_MAX,
+  })
+  @IsOptional()
+  @IsInt({ message: 'availableSpots must be an integer' })
+  @Min(0, { message: 'availableSpots must be at least 0' })
+  @Max(FANZONE_CAPACITY_MAX, {
+    message: `availableSpots must be at most ${FANZONE_CAPACITY_MAX}`,
+  })
+  availableSpots?: number;
 
   @ApiPropertyOptional({
     description: 'Street address of the fan zone',

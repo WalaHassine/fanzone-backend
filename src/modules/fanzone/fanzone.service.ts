@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
-import { FanzoneEntity } from './entities/fanzone.entity';
+import { FanzoneEntity, GeoJsonPoint } from './entities/fanzone.entity';
 import { TeamEntity } from '../match/entities/team.entity';
 import { CheckinEntity } from '../checkin/entities/checkin.entity';
 import { CreateFanzoneDto } from './dto/create-fanzone.dto';
@@ -17,8 +17,12 @@ import { CrowdStatusDto, TeamCrowdDto } from './dto/fanzone-list-response.dto';
  * column — so presence has to be bounded by a rolling window. Four hours covers
  * a match plus the build-up and wind-down around it, after which a check-in is
  * treated as stale rather than accumulating forever.
+ *
+ * Exported because CheckinService applies the same window when rejecting a
+ * repeat check-in: if the writer's idea of "still present" were shorter than the
+ * reader's, one user could contribute several rows to a single crowd count.
  */
-const CROWD_PRESENCE_WINDOW_HOURS = 4;
+export const CROWD_PRESENCE_WINDOW_HOURS = 4;
 
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 const METRES_PER_KILOMETRE = 1000;
@@ -89,14 +93,17 @@ export class FanzoneService {
   }
 
   /**
-   * Builds the EWKT literal for the `location` column.
+   * Builds the value for the `location` column.
    *
-   * Longitude comes first: WKT orders coordinates x-then-y. The `SRID=` prefix
-   * makes the value self-describing, so no `ST_SetSRID` wrapper is needed on
-   * insert.
+   * GeoJSON rather than WKT, because that is what TypeORM's Postgres driver
+   * expects for a spatial column — it stringifies this object into
+   * `ST_SetSRID(ST_GeomFromGeoJSON(...), 4326)`. See the note on
+   * `FanzoneEntity.location`.
+   *
+   * Longitude comes first: GeoJSON orders coordinates x-then-y.
    */
-  private toWkt(latitude: number, longitude: number): string {
-    return `SRID=${SRID};POINT(${longitude} ${latitude})`;
+  private toGeoJsonPoint(latitude: number, longitude: number): GeoJsonPoint {
+    return { type: 'Point', coordinates: [longitude, latitude] };
   }
 
   /**
@@ -133,7 +140,7 @@ export class FanzoneService {
       description: dto.description,
       latitude: dto.latitude,
       longitude: dto.longitude,
-      location: this.toWkt(dto.latitude, dto.longitude),
+      location: this.toGeoJsonPoint(dto.latitude, dto.longitude),
       capacity: dto.capacity,
       availableSpots: dto.capacity,
       address: dto.address,
@@ -275,6 +282,7 @@ export class FanzoneService {
    *   spots are preserved. The result is clamped to `0..capacity`: the lower
    *   bound stops a large shrink going negative, and the upper bound is there
    *   because more spots available than the venue holds is not a real state.
+   * - An explicit `availableSpots` overrides that derived figure — see below.
    *
    * @throws {NotFoundException} if the fan zone, or a newly referenced team, is missing.
    */
@@ -293,7 +301,7 @@ export class FanzoneService {
       const longitude = dto.longitude ?? Number(fanzone.longitude);
       fanzone.latitude = latitude;
       fanzone.longitude = longitude;
-      fanzone.location = this.toWkt(latitude, longitude);
+      fanzone.location = this.toGeoJsonPoint(latitude, longitude);
     }
 
     if (dto.capacity !== undefined) {
@@ -303,6 +311,14 @@ export class FanzoneService {
         dto.capacity,
       );
       fanzone.capacity = dto.capacity;
+    }
+
+    // After the capacity arithmetic on purpose: an explicitly supplied value is
+    // an admin correcting the count, so it wins over the figure derived from a
+    // capacity change in the same request. Clamped to the *effective* capacity —
+    // the new one when capacity moved too, otherwise the stored one.
+    if (dto.availableSpots !== undefined) {
+      fanzone.availableSpots = Math.min(dto.availableSpots, fanzone.capacity);
     }
 
     if (dto.name !== undefined) fanzone.name = dto.name;

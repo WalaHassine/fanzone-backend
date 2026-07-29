@@ -285,7 +285,8 @@ export class FanzoneController {
     description:
       'Admin-only. Supplying teamIds replaces the broadcast team set. ' +
       'Changing a coordinate regenerates the PostGIS location; changing ' +
-      'capacity adjusts availableSpots by the same delta.',
+      'capacity adjusts availableSpots by the same delta. An explicit ' +
+      'availableSpots overrides that derived value.',
   })
   @ApiParam({
     name: 'id',
