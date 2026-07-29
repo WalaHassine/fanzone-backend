@@ -12,6 +12,11 @@ import { ApiProperty } from '@nestjs/swagger';
  * would break the anonymity guarantee the crowd endpoints rest on, so treat any
  * such edit as the contract violation it is — `checkin.controller.spec.ts`
  * asserts the mapped response carries neither key.
+ *
+ * The team is exposed by **name**, not by id: this shape is rendered directly,
+ * and it follows the precedent set by `UserResponseDto.favoriteTeams`, which is
+ * likewise a list of names. Team names are unique in the schema, so nothing is
+ * lost by omitting the id.
  */
 export class CheckinResponseDto {
   @ApiProperty({
@@ -30,11 +35,10 @@ export class CheckinResponseDto {
   fanzoneId!: string;
 
   @ApiProperty({
-    description: 'UUID of the team being supported',
-    format: 'uuid',
-    example: '3f0c9b7e-1a2b-4c3d-9e8f-0a1b2c3d4e5f',
+    description: 'Name of the team being supported',
+    example: 'Tunisia',
   })
-  teamId!: string;
+  teamName!: string;
 
   @ApiProperty({
     description: 'When the check-in was recorded (ISO 8601)',

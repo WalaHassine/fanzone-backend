@@ -42,7 +42,9 @@ export class CheckinController {
     return {
       sessionToken: checkin.sessionToken,
       fanzoneId: checkin.fanzoneId,
-      teamId: checkin.teamId,
+      // `CheckinService.create` attaches the team it loaded, so this needs no
+      // extra query. The response exposes the name rather than the id.
+      teamName: checkin.team.name,
       createdAt: checkin.createdAt.toISOString(),
     };
   }

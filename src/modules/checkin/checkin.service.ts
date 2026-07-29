@@ -132,6 +132,14 @@ export class CheckinService {
 
       const saved = await manager.save(checkin);
 
+      // Attach the relations already in hand. `save` returns the entity as it
+      // was passed in, with no relations hydrated, and the response DTO needs
+      // the team *name* — so this saves a reload the two lookups above have
+      // already paid for. Assigned after the save so it cannot affect what is
+      // persisted.
+      saved.fanzone = fanzone;
+      saved.team = team;
+
       await manager.update(FanzoneEntity, fanzone.id, {
         // Floored at 0. The full-check above already refuses a zone with no
         // spots left, so the floor only bites if the stored value has drifted

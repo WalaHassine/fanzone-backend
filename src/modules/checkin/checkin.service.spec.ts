@@ -129,6 +129,19 @@ describe('CheckinService', () => {
       expect(result.userId).toBe(USER_ID);
     });
 
+    it('returns the entity with its team and fan zone attached', async () => {
+      const fanzone = seedValid();
+
+      const result = await service.create(USER_ID, dto);
+
+      // `save` hydrates no relations, so the controller could not read
+      // `team.name` for the response without this. No extra query is involved —
+      // both entities were already loaded for the validation above.
+      expect(result.team).toEqual(makeTeam());
+      expect(result.team.name).toBe('Tunisia');
+      expect(result.fanzone).toBe(fanzone);
+    });
+
     it('generates the sessionToken server-side', async () => {
       seedValid();
 

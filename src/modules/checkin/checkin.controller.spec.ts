@@ -78,7 +78,7 @@ describe('CheckinController', () => {
       expect(result).toEqual({
         sessionToken: SESSION_TOKEN,
         fanzoneId: FANZONE_ID,
-        teamId: TEAM_ID,
+        teamName: 'Tunisia',
         createdAt: CREATED_AT,
       });
     });
