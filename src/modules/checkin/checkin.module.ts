@@ -11,6 +11,7 @@ import { CheckinService } from './checkin.service';
 
 // Import controllers
 import { CheckinController } from './checkin.controller';
+import { UserCheckinsController } from './user-checkins.controller';
 
 // Import dependencies
 import { FanzoneModule } from '../fanzone/fanzone.module';
@@ -74,8 +75,15 @@ import { UserModule } from '../user/user.module';
   /**
    * Controllers for this module
    * - CheckinController: Handles /checkins endpoints
+   * - UserCheckinsController: Handles GET /users/checkins
+   *
+   * The second one carries a `/users` prefix but lives here, not in UserModule:
+   * the route returns check-in data through CheckinService, and hanging it off
+   * UserController would make UserModule import CheckinModule while
+   * CheckinModule already imports UserModule — a cycle for one route. Nest
+   * routes two controllers under the same prefix without complaint.
    */
-  controllers: [CheckinController],
+  controllers: [CheckinController, UserCheckinsController],
 
   /**
    * Exports
