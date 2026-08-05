@@ -21,6 +21,7 @@ import {
 import { CheckinService } from './checkin.service';
 import { CheckinEntity } from './entities/checkin.entity';
 import {
+  CheckinDetailDto,
   CheckinResponseDto,
   CheckoutDto,
   CreateCheckinDto,
@@ -63,6 +64,34 @@ export class CheckinController {
       // extra query. The response exposes the name rather than the id.
       teamName: checkin.team.name,
       createdAt: checkin.createdAt.toISOString(),
+    };
+  }
+
+  /**
+   * Projects a CheckinEntity onto the public detail shape.
+   *
+   * Field-by-field for the same reason `toResponseDto` is — a spread would carry
+   * `userId` onto the wire, and `{ ...checkin.fanzone }` would carry the venue's
+   * `capacity` and PostGIS `location` with it — and it matters more here, because
+   * this one feeds an **unauthenticated** route. The service already declines to
+   * select those columns; naming every field is the second lock.
+   *
+   * Deliberately separate from `UserCheckinsController.toUserCheckinsDto`, which
+   * produces the same fields for the authenticated listing. Change both only on
+   * purpose: a field that belongs on a caller's own check-in does not
+   * automatically belong on an anonymous one.
+   */
+  private toDetailDto(checkin: CheckinEntity): CheckinDetailDto {
+    return {
+      sessionToken: checkin.sessionToken,
+      fanzoneId: checkin.fanzoneId,
+      fanzoneInfo: {
+        name: checkin.fanzone.name,
+        city: checkin.fanzone.city,
+        address: checkin.fanzone.address,
+      },
+      teamName: checkin.team.name,
+      checkedInAt: checkin.createdAt.toISOString(),
     };
   }
 
@@ -183,10 +212,19 @@ export class CheckinController {
    * snapshot that endpoint returns, tagged with the fan zone id and the moment
    * it was computed.
    *
-   * The literal `crowd/` segment comes first so this can never be shadowed by a
-   * future `GET /checkins/:sessionToken`.
+   * **Two paths, one handler.** `fanzone/:fanzoneId` is the path named in the
+   * WBS; `crowd/:fanzoneId` is the one that describes the payload, which is a
+   * crowd snapshot rather than a fan zone. Both are served so neither client
+   * breaks.
+   *
+   * Declared above `GET /checkins/:sessionToken` as a convention, not a fix:
+   * this project runs express@5 / path-to-regexp@8, where `:param` compiles to
+   * `[^/]+` — one segment — so a two-segment path can never tie with a
+   * one-segment one whatever the order. Keeping literals above the catch-all
+   * keeps the invariant true if either pattern is ever shortened, and any
+   * single-segment literal GET added later (`/checkins/active`) belongs here too.
    */
-  @Get('crowd/:fanzoneId')
+  @Get(['crowd/:fanzoneId', 'fanzone/:fanzoneId'])
   @ApiOperation({
     summary: 'Get the crowd at a fan zone (public)',
     description:
@@ -210,5 +248,49 @@ export class CheckinController {
     @Param('fanzoneId', ParseUUIDPipe) fanzoneId: string,
   ): Promise<CrowdResponseDto> {
     return this.checkinService.getCrowdStatus(fanzoneId);
+  }
+
+  /**
+   * GET /checkins/:sessionToken — public. One check-in, by its token (EF-10).
+   *
+   * **Unauthenticated on purpose.** The token is the credential: an unguessable
+   * v4 UUID unlocking a fan zone, a team and a time, and never a person
+   * (ENF-05). That is what lets a venue scanner — which holds no fan's JWT —
+   * verify a check-in at the gate. It is also why the token is redacted out of
+   * the logs; see `redactPath`.
+   *
+   * `ParseUUIDPipe` is what turns a malformed token into a 400. Without it the
+   * driver rejects the `uuid` cast and a client error is reported as a 500.
+   *
+   * Declared last: it is the catch-all single-segment GET on this controller.
+   */
+  @Get(':sessionToken')
+  @ApiOperation({
+    summary: 'Get a check-in by its session token (public)',
+    description:
+      'Returns the check-in identified by the token: the fan zone, the team ' +
+      'being supported and when it was recorded. No authentication — the token ' +
+      'itself is the credential, and the payload carries no user identifier. ' +
+      'Not bounded by the presence window: a check-in that has aged out of the ' +
+      'crowd count is still a real record and still resolves here.',
+  })
+  @ApiParam({
+    name: 'sessionToken',
+    format: 'uuid',
+    description: 'Token identifying the check-in to read',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The check-in',
+    type: CheckinDetailDto,
+  })
+  @ApiResponse({ status: 400, description: 'Malformed session token' })
+  @ApiResponse({ status: 404, description: 'Check-in not found' })
+  async getBySessionToken(
+    @Param('sessionToken', ParseUUIDPipe) sessionToken: string,
+  ): Promise<CheckinDetailDto> {
+    const checkin =
+      await this.checkinService.getCheckInBySessionToken(sessionToken);
+    return this.toDetailDto(checkin);
   }
 }

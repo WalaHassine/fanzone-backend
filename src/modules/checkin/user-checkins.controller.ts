@@ -55,6 +55,11 @@ export class UserCheckinsController {
    * PostGIS `location` with it. Naming every field means a new column on either
    * entity cannot leak by default — which is exactly the guarantee ENF-05 asks
    * for.
+   *
+   * `CheckinController.toDetailDto` produces the same fields for the public
+   * `GET /checkins/:sessionToken`. The two are deliberately separate, onto
+   * separate DTOs: this listing is behind a guard and may gain a caller-relative
+   * field later, and that one must not inherit it. Change both only on purpose.
    */
   private toUserCheckinsDto(checkins: CheckinEntity[]): UserCheckinsDto {
     return {

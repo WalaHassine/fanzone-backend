@@ -42,18 +42,23 @@ type ManagerMock = jest.Mocked<
 >;
 
 /**
- * The chainable subset of SelectQueryBuilder `getUserCheckIns` drives. Every
- * builder call returns the same object, so the assertions can read the arguments
- * back off it.
+ * The chainable subset of SelectQueryBuilder the read paths drive. Every builder
+ * call returns the same object, so the assertions can read the arguments back
+ * off it.
+ *
+ * `andWhere` is stubbed although nothing calls it: that is what lets
+ * `getCheckInBySessionToken` assert it is *not* window-bounded.
  */
 type QueryBuilderMock = {
   innerJoin: jest.Mock;
   select: jest.Mock;
   addSelect: jest.Mock;
   where: jest.Mock;
+  andWhere: jest.Mock;
   orderBy: jest.Mock;
   addOrderBy: jest.Mock;
   getMany: jest.Mock;
+  getOne: jest.Mock;
 };
 
 describe('CheckinService', () => {
@@ -101,6 +106,30 @@ describe('CheckinService', () => {
     } as CheckinEntity;
   }
 
+  /**
+   * A check-in as the QueryBuilder read paths return one: the four check-in
+   * columns plus partially hydrated `fanzone` and `team`, and **no `userId`** —
+   * that column is not in the select list, so it is not on the row either.
+   */
+  function makeHydratedCheckin(
+    overrides: Partial<CheckinEntity> = {},
+  ): CheckinEntity {
+    return {
+      id: CHECKIN_ID,
+      sessionToken: SESSION_TOKEN,
+      fanzoneId: FANZONE_ID,
+      createdAt: CREATED_AT,
+      fanzone: {
+        id: FANZONE_ID,
+        name: 'Tunis Stadium',
+        city: 'Tunis',
+        address: '123 Main St',
+      },
+      team: { id: TEAM_ID, name: 'Tunisia' },
+      ...overrides,
+    } as unknown as CheckinEntity;
+  }
+
   const dto = { fanzoneId: FANZONE_ID, teamId: TEAM_ID };
 
   /** Seeds the happy path: zone exists, team exists and broadcasts, no duplicate. */
@@ -134,9 +163,11 @@ describe('CheckinService', () => {
       select: jest.fn().mockReturnThis(),
       addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       addOrderBy: jest.fn().mockReturnThis(),
       getMany: jest.fn().mockResolvedValue([]),
+      getOne: jest.fn().mockResolvedValue(makeHydratedCheckin()),
     };
 
     checkinRepo = {
@@ -499,6 +530,194 @@ describe('CheckinService', () => {
       };
       expect(where.sessionToken).toBe(SESSION_TOKEN);
       expect(where.createdAt).toBeUndefined();
+    });
+  });
+
+  describe('capacity over a sequence (EF-12)', () => {
+    const CAPACITY = 50;
+    let fanzone: FanzoneEntity;
+
+    /**
+     * A **stateful** fan zone, unlike the shared `beforeEach` mock: `update`
+     * writes the new spot count back onto the fixture, so each call sees what
+     * the previous one left. Every other spot test in this file is single-step
+     * from a hand-seeded value, which cannot catch an error that only shows up
+     * once the deltas accumulate.
+     */
+    beforeEach(() => {
+      fanzone = makeFanzone({
+        capacity: CAPACITY,
+        availableSpots: CAPACITY,
+      });
+      fanzoneRepo.findOne.mockResolvedValue(fanzone);
+      teamRepo.findOne.mockResolvedValue(makeTeam());
+      manager.findOne.mockResolvedValue(fanzone);
+      (manager.update as jest.Mock).mockImplementation(
+        (_entity: unknown, _id: string, partial: Partial<FanzoneEntity>) => {
+          Object.assign(fanzone, partial);
+          return Promise.resolve({ affected: 1 });
+        },
+      );
+    });
+
+    /** Checks a distinct fan in, so the duplicate guard never fires. */
+    async function checkInOnce(index: number): Promise<void> {
+      checkinRepo.findOne.mockResolvedValue(null);
+      await service.create(`user-uuid-${index}`, dto);
+    }
+
+    it('starts with every spot free', () => {
+      expect(fanzone.capacity).toBe(50);
+      expect(fanzone.availableSpots).toBe(50);
+    });
+
+    it('leaves 40 spots after ten check-ins', async () => {
+      for (let i = 0; i < 10; i++) {
+        await checkInOnce(i);
+      }
+
+      expect(fanzone.availableSpots).toBe(40);
+    });
+
+    it('gives five back on checkout, up to 45', async () => {
+      for (let i = 0; i < 10; i++) {
+        await checkInOnce(i);
+      }
+
+      checkinRepo.findOne.mockResolvedValue(makeCheckin());
+      for (let i = 0; i < 5; i++) {
+        await service.checkout(USER_ID, SESSION_TOKEN, FANZONE_ID);
+      }
+
+      expect(fanzone.availableSpots).toBe(45);
+    });
+
+    it('never lets availableSpots go negative', async () => {
+      // Drain the zone, then try once more. The full-check has to refuse before
+      // the decrement, or occupancy stops describing the venue.
+      for (let i = 0; i < CAPACITY; i++) {
+        await checkInOnce(i);
+      }
+      expect(fanzone.availableSpots).toBe(0);
+
+      checkinRepo.findOne.mockResolvedValue(null);
+      await expect(service.create('one-too-many', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(fanzone.availableSpots).toBe(0);
+    });
+
+    it('never releases a spot above capacity', async () => {
+      // One check-in, two checkouts. The second must not push the zone above
+      // the 50 spots it actually has.
+      await checkInOnce(0);
+      checkinRepo.findOne.mockResolvedValue(makeCheckin());
+      await service.checkout(USER_ID, SESSION_TOKEN, FANZONE_ID);
+      await service.checkout(USER_ID, SESSION_TOKEN, FANZONE_ID);
+
+      expect(fanzone.availableSpots).toBe(CAPACITY);
+    });
+  });
+
+  describe('getCheckInBySessionToken (EF-10, ENF-05)', () => {
+    it('looks the check-in up by its session token', async () => {
+      await service.getCheckInBySessionToken(SESSION_TOKEN);
+
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        'checkin.sessionToken = :sessionToken',
+        { sessionToken: SESSION_TOKEN },
+      );
+    });
+
+    it('throws NotFoundException when no check-in has that token', async () => {
+      queryBuilder.getOne.mockResolvedValue(null);
+
+      await expect(
+        service.getCheckInBySessionToken(SESSION_TOKEN),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('uses the same not-found message as checkout', async () => {
+      // An unknown token and a checked-out one must be indistinguishable —
+      // checkout deletes the row, so that is already true and should stay true.
+      queryBuilder.getOne.mockResolvedValue(null);
+
+      await expect(
+        service.getCheckInBySessionToken(SESSION_TOKEN),
+      ).rejects.toThrow('Check-in not found');
+    });
+
+    it('returns the row with the fan zone and team hydrated', async () => {
+      const result = await service.getCheckInBySessionToken(SESSION_TOKEN);
+
+      expect(result.sessionToken).toBe(SESSION_TOKEN);
+      expect(result.fanzone).toEqual(
+        expect.objectContaining({
+          name: 'Tunis Stadium',
+          city: 'Tunis',
+          address: '123 Main St',
+        }),
+      );
+      expect(result.team.name).toBe('Tunisia');
+
+      // The mapper reads exactly these columns, so they have to be selected.
+      // `jest.Mock` is untyped, so the recorded arguments come back as `any`.
+      const selected = [
+        ...(queryBuilder.select.mock.calls.flat(2) as string[]),
+        ...(queryBuilder.addSelect.mock.calls.flat(2) as string[]),
+      ];
+      expect(selected).toEqual(
+        expect.arrayContaining([
+          'checkin.sessionToken',
+          'checkin.fanzoneId',
+          'checkin.createdAt',
+          'fanzone.name',
+          'fanzone.city',
+          'fanzone.address',
+          'team.name',
+        ]),
+      );
+    });
+
+    it('never selects a user column (ENF-05)', async () => {
+      await service.getCheckInBySessionToken(SESSION_TOKEN);
+
+      // `jest.Mock` is untyped, so the recorded arguments come back as `any`.
+      const selected = [
+        ...(queryBuilder.select.mock.calls.flat(2) as string[]),
+        ...(queryBuilder.addSelect.mock.calls.flat(2) as string[]),
+      ];
+      expect(selected).not.toContain('checkin.userId');
+      expect(queryBuilder.innerJoin).not.toHaveBeenCalledWith(
+        'checkin.user',
+        expect.anything(),
+      );
+    });
+
+    it('joins explicitly instead of using find or findOne', async () => {
+      await service.getCheckInBySessionToken(SESSION_TOKEN);
+
+      // Leak-by-default is the argument, not cost: `findOne` honours eager
+      // relations, so it would hydrate the venue's capacity, spots and PostGIS
+      // location onto an entity a *public* handler then maps.
+      expect(checkinRepo.find).not.toHaveBeenCalled();
+      expect(checkinRepo.findOne).not.toHaveBeenCalled();
+      expect(queryBuilder.innerJoin).toHaveBeenCalledWith(
+        'checkin.fanzone',
+        'fanzone',
+      );
+      expect(queryBuilder.innerJoin).toHaveBeenCalledWith(
+        'checkin.team',
+        'team',
+      );
+    });
+
+    it('reads a check-in past the presence window', async () => {
+      await service.getCheckInBySessionToken(SESSION_TOKEN);
+
+      // A stale check-in is out of the crowd count but still a real record
+      // holding a spot — the token has to keep resolving it.
+      expect(queryBuilder.andWhere).not.toHaveBeenCalled();
     });
   });
 

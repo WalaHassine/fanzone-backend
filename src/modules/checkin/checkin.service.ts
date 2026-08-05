@@ -288,6 +288,69 @@ export class CheckinService {
   }
 
   /**
+   * One check-in, looked up by its session token (EF-10).
+   *
+   * **Public by design.** The caller is not authenticated: the token is the
+   * credential, and nothing here reads a user column, so what comes back names a
+   * fan zone, a team and a time and never a person (ENF-05). A v4 UUID is 122
+   * unguessable bits, which is what makes that safe — and why the token is kept
+   * out of the logs, see `redactPath`.
+   *
+   * Deliberately **not** bounded by the presence window. A check-in past
+   * CROWD_PRESENCE_WINDOW_HOURS has aged out of the crowd count but is still a
+   * real record, still holding its spot, and this is how a fan verifies it.
+   *
+   * Built with a QueryBuilder rather than `findOne`, and the reason is leakage
+   * rather than cost: `CheckinEntity.fanzone` is eager and `FanzoneEntity.teams`
+   * is an eager many-to-many, so a default `findOne` would hydrate the venue's
+   * `capacity`, `availableSpots` and PostGIS `location` — plus every broadcast
+   * team — onto an entity a *public* handler then maps. For a single row that is
+   * milliseconds, so performance is not the argument; the argument is that one
+   * careless spread downstream turns those hydrated columns into the response,
+   * which is precisely the leak this module's mappers exist to prevent. Naming
+   * the six columns means the leak has nothing to work with.
+   *
+   * The not-found message matches `checkout`'s exactly, so an unknown token and
+   * a checked-out one are indistinguishable to a caller. Checkout deletes the
+   * row, so that is already true; it should stay true.
+   *
+   * @returns the check-in with `fanzone` and `team` partially hydrated.
+   * @throws {NotFoundException} if no check-in has that session token.
+   */
+  async getCheckInBySessionToken(sessionToken: string): Promise<CheckinEntity> {
+    const checkin = await this.checkinRepository
+      .createQueryBuilder('checkin')
+      .innerJoin('checkin.fanzone', 'fanzone')
+      .innerJoin('checkin.team', 'team')
+      .select([
+        'checkin.id',
+        'checkin.sessionToken',
+        'checkin.fanzoneId',
+        'checkin.createdAt',
+      ])
+      .addSelect([
+        'fanzone.id',
+        'fanzone.name',
+        'fanzone.city',
+        'fanzone.address',
+        'team.id',
+        'team.name',
+      ])
+      // No `.toLowerCase()` here, and none is needed: `sessionToken` is a `uuid`
+      // column, so Postgres parses both sides with `uuid_in` and hex in either
+      // case is the same 128 bits. `checkout`'s lowercasing is a *JavaScript*
+      // string comparison — a different problem with a different fix.
+      .where('checkin.sessionToken = :sessionToken', { sessionToken })
+      .getOne();
+
+    if (!checkin) {
+      throw new NotFoundException('Check-in not found');
+    }
+
+    return checkin;
+  }
+
+  /**
    * Every check-in belonging to one fan, newest first (EF-10).
    *
    * `userId` comes from the verified JWT, so a fan only ever sees their own —

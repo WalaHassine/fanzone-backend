@@ -8,10 +8,16 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+import { redactPath } from '../utils';
+
 /**
  * Global HTTP Exception Filter
  * - Catches thrown exceptions and returns a consistent JSON shape
  * - Logs the error for observability
+ *
+ * The URL is redacted in both the log line and the `path` it echoes back: path
+ * UUIDs include the check-in session token, which is a read credential for a
+ * public route. See `redactPath` for the reasoning.
  *
  * TODO: expand error mapping / add correlation ids as needed.
  */
@@ -34,11 +40,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    this.logger.error(`${request.method} ${request.url} -> ${status}`);
+    const path = redactPath(request.url);
+
+    this.logger.error(`${request.method} ${path} -> ${status}`);
 
     response.status(status).json({
       statusCode: status,
-      path: request.url,
+      path,
       timestamp: new Date().toISOString(),
       message,
     });
