@@ -5,6 +5,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { CheckinModule } from './checkin.module';
 import { CheckinService } from './checkin.service';
 import { CheckinController } from './checkin.controller';
+import { UserCheckinsController } from './user-checkins.controller';
 import { CheckinEntity } from './entities/checkin.entity';
 import { FanzoneService } from '../fanzone/fanzone.service';
 import { FanzoneEntity } from '../fanzone/entities/fanzone.entity';
@@ -68,6 +69,14 @@ describe('CheckinModule (ENF-08)', () => {
     expect(controller['checkinService']).toBeInstanceOf(CheckinService);
   });
 
+  it('injects CheckinService into UserCheckinsController', () => {
+    // The /users/checkins route is registered here rather than in UserModule:
+    // CheckinModule already imports UserModule, so the reverse would be a cycle.
+    const controller = moduleRef.get(UserCheckinsController);
+    expect(controller).toBeInstanceOf(UserCheckinsController);
+    expect(controller['checkinService']).toBeInstanceOf(CheckinService);
+  });
+
   it('wires all three repositories into CheckinService', () => {
     const service = moduleRef.get(CheckinService);
     // Registered by CheckinModule's own forFeature rather than borrowed from
@@ -79,6 +88,13 @@ describe('CheckinModule (ENF-08)', () => {
 
   it('resolves FanzoneService across the forwardRef cycle', () => {
     expect(moduleRef.get(FanzoneService)).toBeInstanceOf(FanzoneService);
+  });
+
+  it('injects FanzoneService into CheckinService for the crowd aggregation', () => {
+    // getCrowdStatus delegates rather than repeating the GROUP BY, so this is
+    // what keeps the two modules' crowd figures from drifting apart.
+    const service = moduleRef.get(CheckinService);
+    expect(service['fanzoneService']).toBeInstanceOf(FanzoneService);
   });
 
   it('exports CheckinService and the entity repositories for other modules', () => {
