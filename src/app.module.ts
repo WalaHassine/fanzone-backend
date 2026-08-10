@@ -9,6 +9,7 @@ import { TypeOrmConfigService } from './database/typeorm.config';
 // Import configuration namespaces
 import appConfig from './config/app.config';
 import jwtConfig from './config/jwt.config';
+import aiConfig from './config/ai.config';
 
 // Import all service modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -46,14 +47,14 @@ import { AppService } from './app.service';
      * Configuration Module
      * - Loads environment variables from .env file
      * - Makes ConfigService available globally
-     * - Registers typed namespaces: `app.*` and `jwt.*`
+     * - Registers typed namespaces: `app.*`, `jwt.*` and `ai.*`
      */
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       cache: true,
       expandVariables: true,
-      load: [appConfig, jwtConfig],
+      load: [appConfig, jwtConfig, aiConfig],
     }),
 
     /**

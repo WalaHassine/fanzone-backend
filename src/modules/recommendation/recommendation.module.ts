@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HttpModule } from '@nestjs/axios';
 
 // Import entities
 import { RecommendationEntity } from './entities/recommendation.entity';
@@ -28,7 +27,7 @@ import { CheckinModule } from '../checkin/checkin.module';
  * - Auto-generate fan zone descriptions
  *
  * Key Features:
- * - Integration with OpenAI API
+ * - Integration with the Groq API (see AiService)
  * - Personalized recommendations based on:
  *   - User's favorite teams
  *   - User's ambiance preference
@@ -50,13 +49,6 @@ import { CheckinModule } from '../checkin/checkin.module';
      * - Provides Repository<RecommendationEntity>
      */
     TypeOrmModule.forFeature([RecommendationEntity]),
-
-    /**
-     * HTTP Module
-     * - For making HTTP requests to OpenAI API
-     * - Alternative to axios client
-     */
-    HttpModule,
 
     /**
      * User Module
@@ -90,7 +82,7 @@ import { CheckinModule } from '../checkin/checkin.module';
   /**
    * Services provided by this module
    * - RecommendationService: Main recommendation logic
-   * - AiService: OpenAI API integration
+   * - AiService: Groq API integration
    */
   providers: [RecommendationService, AiService],
 
