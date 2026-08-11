@@ -12,6 +12,10 @@ import {
   MatchRecommendationSuggestionDto,
   SuggestedFanzoneDto,
 } from './match-recommendation-suggestion.dto';
+import {
+  AlertSuggestionDto,
+  SuggestedAlertTimeDto,
+} from './alert-suggestion.dto';
 import { RecommendationListDto } from './recommendation-list.dto';
 import { RecommendationRequestDto } from './recommendation-request.dto';
 import {
@@ -315,6 +319,8 @@ describe('response DTOs carry no validators', () => {
     ['RecommendationListDto', RecommendationListDto],
     ['MatchRecommendationSuggestionDto', MatchRecommendationSuggestionDto],
     ['SuggestedFanzoneDto', SuggestedFanzoneDto],
+    ['AlertSuggestionDto', AlertSuggestionDto],
+    ['SuggestedAlertTimeDto', SuggestedAlertTimeDto],
   ];
 
   it.each(outputDtos)('%s declares no validation rules', (_name, cls) => {

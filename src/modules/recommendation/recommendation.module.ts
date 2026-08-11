@@ -3,6 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Import entities
 import { RecommendationEntity } from './entities/recommendation.entity';
+import { UserEntity } from '../user/entities/user.entity';
+import { MatchEntity } from '../match/entities/match.entity';
+import { AlertEntity } from '../alert/entities/alert.entity';
 
 // Import services
 import { RecommendationService } from './recommendation.service';
@@ -45,10 +48,23 @@ import { CheckinModule } from '../checkin/checkin.module';
   imports: [
     /**
      * TypeORM Module
-     * - Register RecommendationEntity
-     * - Provides Repository<RecommendationEntity>
+     * - Registers RecommendationEntity plus the three entities the service
+     *   reads directly: UserEntity (profile + preferences), MatchEntity
+     *   (fixture and teams) and AlertEntity.
+     * - AlertEntity is registered here rather than reached through AlertModule:
+     *   `suggestAlerts` only needs to know whether an alert already exists, and
+     *   AlertService is still a stub. Importing that module would also invite a
+     *   cycle, since alerts are about users and matches.
+     * - FanzoneEntity is deliberately absent — every fan zone read goes through
+     *   FanzoneService, so the PostGIS distance expression and the occupancy
+     *   formula each live in exactly one place.
      */
-    TypeOrmModule.forFeature([RecommendationEntity]),
+    TypeOrmModule.forFeature([
+      RecommendationEntity,
+      UserEntity,
+      MatchEntity,
+      AlertEntity,
+    ]),
 
     /**
      * User Module

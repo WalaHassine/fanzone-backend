@@ -25,3 +25,7 @@ export {
   MatchRecommendationSuggestionDto,
   SuggestedFanzoneDto,
 } from './match-recommendation-suggestion.dto';
+export {
+  AlertSuggestionDto,
+  SuggestedAlertTimeDto,
+} from './alert-suggestion.dto';

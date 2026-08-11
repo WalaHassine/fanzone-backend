@@ -19,11 +19,13 @@ export const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 /**
  * Per-request ceiling, in milliseconds.
  *
- * ENF-01 budgets the whole recommendation response at under 3 s; the AI call is
- * the only unbounded part of it, so it gets the entire budget and the caller
- * falls back deterministically when it is exceeded.
+ * ENF-01 budgets the whole recommendation *response* at under 3 s, not the AI
+ * call alone: `RecommendationService` also loads the user, the match and the
+ * candidate fan zones, then inserts a row. Giving the model the full 3 s would
+ * therefore guarantee a breach, so it gets 2.5 s and the database keeps the
+ * rest.
  */
-export const DEFAULT_GROQ_TIMEOUT_MS = 3000;
+export const DEFAULT_GROQ_TIMEOUT_MS = 2500;
 
 /**
  * AI provider configuration namespace.

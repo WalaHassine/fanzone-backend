@@ -31,6 +31,14 @@ const METRES_PER_KILOMETRE = 1000;
 const SRID = 4326;
 
 /**
+ * Default ceiling on `findWithDistanceFrom`.
+ *
+ * The recommender's candidates become prompt text, so this is a latency and
+ * token bound rather than a paging concern (ENF-01).
+ */
+export const DEFAULT_NEAREST_LIMIT = 10;
+
+/**
  * A fan zone carrying the distance computed for a location-filtered search.
  *
  * `distance` is not a column; `findAll` attaches it when the caller supplied
@@ -253,6 +261,95 @@ export class FanzoneService {
       const withDistance = entity as FanzoneWithDistance;
       withDistance.distance = distanceById.get(entity.id);
       return withDistance;
+    });
+  }
+
+  /**
+   * The nearest fan zones to a point, each carrying its distance in kilometres.
+   *
+   * Exists for the recommender (EF-13), which needs three things `findAll`
+   * cannot give it:
+   *
+   * - **No radius.** `findAll` requires `maxDistance` and filters with
+   *   `ST_DWithin`. A fan whose nearest zone is 200 km away must still get an
+   *   answer, so this ranks rather than excludes.
+   * - **A bounded result set.** The candidates go into an LLM prompt, where
+   *   every extra zone costs tokens and latency (ENF-01). `limit` is that bound.
+   * - **A guaranteed distance.** `FanzoneWithDistance.distance` is optional
+   *   because `findAll` omits it for unfiltered searches; here every result has
+   *   one, since a zone without a location is excluded outright.
+   *
+   * Two queries rather than one: the ranking query selects only ids and
+   * distances so `LIMIT` counts fan zones, then the entities are loaded through
+   * `find`, which honours the eager `teams` relation. A single joined query
+   * would emit one row per fan zone/team pair and `LIMIT` would cut the list
+   * mid-zone.
+   *
+   * @param options.limit maximum number of fan zones to return, nearest first.
+   * @param options.fanzoneIds restricts the search to these fan zones and
+   *   ignores `limit` — the form the recommendation mapper uses when it already
+   *   knows which zones it needs a distance for. An empty array returns nothing.
+   * @returns fan zones ordered by ascending distance; empty when no fan zone has
+   *   a `location`.
+   */
+  async findWithDistanceFrom(
+    latitude: number,
+    longitude: number,
+    options: { limit?: number; fanzoneIds?: string[] } = {},
+  ): Promise<FanzoneWithDistance[]> {
+    if (options.fanzoneIds?.length === 0) {
+      return [];
+    }
+
+    const distanceKm = this.distanceKmExpression();
+
+    const qb = this.fanzoneRepository
+      .createQueryBuilder('fanzone')
+      .select('fanzone.id', 'id')
+      .addSelect(distanceKm, 'distance_km')
+      // A NULL location cannot be measured, and a fan zone that cannot be
+      // placed on the map cannot be justified to the user either.
+      .where('fanzone.location IS NOT NULL')
+      .orderBy(distanceKm, 'ASC')
+      .setParameters({ lat: latitude, lng: longitude });
+
+    if (options.fanzoneIds) {
+      // Explicit ids are already a bound; a LIMIT on top could silently drop
+      // the very zone the caller asked about.
+      qb.andWhere('fanzone.id IN (:...fanzoneIds)', {
+        fanzoneIds: options.fanzoneIds,
+      });
+    } else {
+      qb.limit(options.limit ?? DEFAULT_NEAREST_LIMIT);
+    }
+
+    const rows = await qb.getRawMany<{
+      id: string;
+      distance_km: string | number;
+    }>();
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const entities = await this.fanzoneRepository.find({
+      where: { id: In(rows.map((row) => row.id)) },
+      relations: { teams: true },
+    });
+
+    const entityById = new Map(entities.map((entity) => [entity.id, entity]));
+
+    // Driven by `rows`, not by `entities`: `find` does not preserve the
+    // distance ordering, and the caller relies on nearest-first.
+    return rows.flatMap((row) => {
+      const entity = entityById.get(row.id);
+      if (!entity) {
+        return [];
+      }
+
+      const withDistance = entity as FanzoneWithDistance;
+      withDistance.distance = Number(row.distance_km);
+      return [withDistance];
     });
   }
 
