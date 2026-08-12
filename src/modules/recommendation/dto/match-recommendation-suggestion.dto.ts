@@ -3,6 +3,21 @@ import { ApiProperty } from '@nestjs/swagger';
 import { SCORE_MAX, SCORE_MIN } from './ai-recommendation-output.dto';
 
 /**
+ * Not yet served by any endpoint — and that is on purpose.
+ *
+ * Both classes in this file are reserved for the planned "upcoming match nudge"
+ * endpoint, which lists several candidate zones for a fixture at once. EF-15
+ * turned out to be about alert *trigger times* rather than zone suggestions, so
+ * `AlertSuggestionDto` was written for it and these were left standing rather
+ * than deleted; the decision is recorded in
+ * `docs/task-6.7-6.8-recommendation-plan.md`. They are exercised by
+ * `recommendation-dto.spec.ts`, so the shape stays honest while it waits.
+ *
+ * If that endpoint is dropped, delete this file and its two barrel exports —
+ * an unused DTO that no longer has a destination is just a shape to maintain.
+ */
+
+/**
  * One suggested fan zone within a match suggestion.
  *
  * Output DTO only. A deliberately thin projection: `reason` is a one-line

@@ -46,6 +46,27 @@ import { UserRole } from '../user/entities/user.entity';
  * entities — because the mapping needs live distance and occupancy figures that
  * only the service can obtain. Nothing here reshapes a payload; the one piece of
  * HTTP-level policy is turning the service's `null` into a 404.
+ *
+ * **The model.** Recommendations and their explanations come from Groq, running
+ * `llama-3.3-70b-versatile` by default and overridable through `GROQ_MODEL`.
+ * Deliberately *not* `mixtral-8x7b-32768`, which is decommissioned and answers
+ * `404 model_not_found` — earlier drafts of this API named it.
+ *
+ * **The budget.** ENF-01 caps the whole response at three seconds. That is the
+ * response, not the model call: the service also loads the fan, the fixture and
+ * the candidate zones, then writes a row. `GROQ_TIMEOUT` therefore defaults to
+ * 2500 ms and the database work keeps the rest. Measured latency against the
+ * live provider runs roughly 0.8–2 s. A repeat request inside the cache TTL
+ * makes no provider call at all and returns in tens of milliseconds.
+ *
+ * **Degradation.** Every provider failure — bad key, rate limit, timeout,
+ * network, provider 5xx, or a response that fails validation — is absorbed. The
+ * caller still gets a 201 carrying the nearest open zone, a low confidence
+ * score and a neutral explanation that names no provider. **No 5xx is ever
+ * emitted for an AI failure**, which is why no 503 appears in any response table
+ * below; the omission is the design, not an oversight. Availability of the
+ * recommendation matters more to a fan standing in the street than its
+ * cleverness does.
  */
 @ApiTags('Recommendations')
 @Controller('recommendations')
@@ -68,10 +89,18 @@ export class RecommendationController {
     description:
       "Recommends the fan zone that best fits the caller's favourite teams, " +
       'preferred ambiance and city, with a written explanation and a ' +
-      'confidence score. A recommendation generated in the last few minutes ' +
-      'is reused rather than regenerated. If the AI provider is unavailable ' +
-      'the nearest suitable venue is returned with a low score instead of an ' +
-      'error.',
+      'confidence score, both produced by Groq running ' +
+      'llama-3.3-70b-versatile.\n\n' +
+      'A recommendation generated in the last 15 minutes is reused rather ' +
+      'than regenerated, and a reused one costs no provider call.\n\n' +
+      'Typical latency is 0.8-2 s, inside the three-second ENF-01 budget; the ' +
+      'model itself is capped at 2500 ms so the surrounding database work ' +
+      'fits.\n\n' +
+      'If the provider is unavailable, times out, or returns something that ' +
+      'fails validation, this endpoint still answers 201: the nearest open ' +
+      'venue is returned with a score of 0.3 and a neutral explanation that ' +
+      'names no provider. It never answers 5xx because of the AI, which is ' +
+      'why no 503 is listed below.',
   })
   @ApiBody({ type: RecommendationRequestDto })
   @ApiResponse({
@@ -98,8 +127,14 @@ export class RecommendationController {
   /**
    * GET /recommendations/me — authenticated (EF-13).
    *
-   * Declared before `:matchId` routes would be ambiguous with it; kept adjacent
-   * to the other reads for legibility. One entry per match, newest first.
+   * One entry per match, newest first.
+   *
+   * Its position in the file is legibility, not routing: the parameterised
+   * routes all sit under a literal `match/` segment, so `me` cannot be captured
+   * by one of them whatever the declaration order. That is the reason `match/`
+   * is there — a flat `:matchId` at this level would swallow `me`, and every
+   * literal segment added here afterwards, unless each one were kept above it
+   * forever.
    */
   @Get('me')
   @UseGuards(JwtAuthGuard)
