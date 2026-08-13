@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 
 // Import entities
 import { AdminStatisticEntity } from './entities/admin.entity';
@@ -47,11 +46,11 @@ import { FanzoneModule } from '../fanzone/fanzone.module';
     TypeOrmModule.forFeature([AdminStatisticEntity]),
 
     /**
-     * Schedule Module
-     * - For @Cron and @Interval decorators
-     * - Used for daily aggregation job
+     * No ScheduleModule here. It used to call `forRoot()`, as AlertModule did —
+     * two root registrations, two explorer passes, and every @Cron at risk of
+     * running twice. `AppModule` owns the single call now, so the daily
+     * aggregation job will be discovered from there once it exists.
      */
-    ScheduleModule.forRoot(),
 
     /**
      * CheckIn Module

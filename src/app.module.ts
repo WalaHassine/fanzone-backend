@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER, APP_PIPE, APP_INTERCEPTOR } from '@nestjs/core';
 
 // Import database configuration
@@ -10,6 +11,7 @@ import { TypeOrmConfigService } from './database/typeorm.config';
 import appConfig from './config/app.config';
 import jwtConfig from './config/jwt.config';
 import aiConfig from './config/ai.config';
+import scheduleConfig from './config/schedule.config';
 
 // Import all service modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -47,15 +49,28 @@ import { AppService } from './app.service';
      * Configuration Module
      * - Loads environment variables from .env file
      * - Makes ConfigService available globally
-     * - Registers typed namespaces: `app.*`, `jwt.*` and `ai.*`
+     * - Registers typed namespaces: `app.*`, `jwt.*`, `ai.*` and `schedule.*`
      */
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       cache: true,
       expandVariables: true,
-      load: [appConfig, jwtConfig, aiConfig],
+      load: [appConfig, jwtConfig, aiConfig, scheduleConfig],
     }),
+
+    /**
+     * Schedule Module
+     * - Registers SchedulerRegistry and the explorer that discovers @Cron,
+     *   @Interval and @Timeout across every provider
+     * - Root-level on purpose. It was previously called in both AlertModule and
+     *   AdminModule; two explorer passes over the same providers can register a
+     *   job twice, which for the alert sweep would mean triggering every due
+     *   alert twice a minute. It belongs here beside the other forRoot calls.
+     * - A feature module compiled on its own therefore has no scheduler at all,
+     *   which is what keeps @Cron inert in the module specs
+     */
+    ScheduleModule.forRoot(),
 
     /**
      * Database Module
