@@ -44,6 +44,7 @@ export class UserPreferenceEntity {
   @JoinColumn({ name: 'user_id' })
   user!: UserEntity;
 
-  @Column({ type: 'uuid' })
+  // Shares its column with the relation above.
+  @Column({ type: 'uuid', name: 'user_id' })
   userId!: string;
 }
