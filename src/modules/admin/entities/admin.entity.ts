@@ -25,9 +25,10 @@ export class AdminStatisticEntity {
   @Column({ type: 'integer', default: 0 })
   uniqueUsers!: number;
 
-  // Top fan zone ID (foreign key, optional)
-  @Column({ type: 'uuid', nullable: true })
-  topFanZoneId!: string;
+  // Top fan zone ID (foreign key, optional) — shares its column with the
+  // relation below.
+  @Column({ type: 'uuid', name: 'top_fan_zone_id', nullable: true })
+  topFanZoneId!: string | null;
 
   // Total recommendations generated
   @Column({ type: 'integer', default: 0 })
@@ -42,5 +43,5 @@ export class AdminStatisticEntity {
     nullable: true,
   })
   @JoinColumn({ name: 'top_fan_zone_id' })
-  topFanZone!: FanzoneEntity;
+  topFanZone!: FanzoneEntity | null;
 }

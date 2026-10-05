@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HttpModule } from '@nestjs/axios';
 
 // Import entities
 import { RecommendationEntity } from './entities/recommendation.entity';
+import { UserEntity } from '../user/entities/user.entity';
+import { MatchEntity } from '../match/entities/match.entity';
+import { AlertEntity } from '../alert/entities/alert.entity';
 
 // Import services
 import { RecommendationService } from './recommendation.service';
@@ -28,7 +30,7 @@ import { CheckinModule } from '../checkin/checkin.module';
  * - Auto-generate fan zone descriptions
  *
  * Key Features:
- * - Integration with OpenAI API
+ * - Integration with the Groq API (see AiService)
  * - Personalized recommendations based on:
  *   - User's favorite teams
  *   - User's ambiance preference
@@ -46,17 +48,23 @@ import { CheckinModule } from '../checkin/checkin.module';
   imports: [
     /**
      * TypeORM Module
-     * - Register RecommendationEntity
-     * - Provides Repository<RecommendationEntity>
+     * - Registers RecommendationEntity plus the three entities the service
+     *   reads directly: UserEntity (profile + preferences), MatchEntity
+     *   (fixture and teams) and AlertEntity.
+     * - AlertEntity is registered here rather than reached through AlertModule:
+     *   `suggestAlerts` only needs to know whether an alert already exists, and
+     *   AlertService is still a stub. Importing that module would also invite a
+     *   cycle, since alerts are about users and matches.
+     * - FanzoneEntity is deliberately absent — every fan zone read goes through
+     *   FanzoneService, so the PostGIS distance expression and the occupancy
+     *   formula each live in exactly one place.
      */
-    TypeOrmModule.forFeature([RecommendationEntity]),
-
-    /**
-     * HTTP Module
-     * - For making HTTP requests to OpenAI API
-     * - Alternative to axios client
-     */
-    HttpModule,
+    TypeOrmModule.forFeature([
+      RecommendationEntity,
+      UserEntity,
+      MatchEntity,
+      AlertEntity,
+    ]),
 
     /**
      * User Module
@@ -90,7 +98,7 @@ import { CheckinModule } from '../checkin/checkin.module';
   /**
    * Services provided by this module
    * - RecommendationService: Main recommendation logic
-   * - AiService: OpenAI API integration
+   * - AiService: Groq API integration
    */
   providers: [RecommendationService, AiService],
 

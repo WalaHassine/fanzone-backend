@@ -44,6 +44,7 @@ type QbMock = {
   andWhere: ChainMock;
   groupBy: ChainMock;
   orderBy: ChainMock;
+  limit: ChainMock;
   setParameters: ChainMock;
   getMany: TerminalMock;
   getRawAndEntities: TerminalMock;
@@ -62,6 +63,7 @@ function makeQb(): QbMock {
     'andWhere',
     'groupBy',
     'orderBy',
+    'limit',
     'setParameters',
   ] as const) {
     qb[method] = jest.fn(() => qb) as ChainMock;
@@ -431,6 +433,89 @@ describe('FanzoneService', () => {
         expect(qb.orderBy).toHaveBeenCalledWith('fanzone.name', 'ASC');
         expect(qb.getMany).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('findWithDistanceFrom', () => {
+    it('ranks by distance without a radius filter and bounds the result', async () => {
+      const qb = stubFanzoneQb();
+      qb.getRawMany.mockResolvedValue([{ id: FANZONE_ID, distance_km: '3.2' }]);
+      fanzoneRepo.find.mockResolvedValue([makeFanzone()]);
+
+      await service.findWithDistanceFrom(LATITUDE, LONGITUDE, { limit: 10 });
+
+      expect(sqlOf(qb)).toContain('ST_Distance');
+      // A radius would exclude the only zone available to a remote fan.
+      expect(sqlOf(qb)).not.toContain('ST_DWithin');
+      expect(qb.limit).toHaveBeenCalledWith(10);
+      expect(qb.setParameters).toHaveBeenCalledWith({
+        lat: LATITUDE,
+        lng: LONGITUDE,
+      });
+    });
+
+    it('excludes fan zones that have no location', async () => {
+      const qb = stubFanzoneQb();
+      qb.getRawMany.mockResolvedValue([]);
+
+      await service.findWithDistanceFrom(LATITUDE, LONGITUDE);
+
+      expect(sqlOf(qb)).toContain('location IS NOT NULL');
+    });
+
+    it('attaches the distance and preserves the nearest-first ordering', async () => {
+      const other = 'c3d4e5f6-7a8b-4c9d-8e0f-1a2b3c4d5e6f';
+      const qb = stubFanzoneQb();
+      qb.getRawMany.mockResolvedValue([
+        { id: other, distance_km: '1.5' },
+        { id: FANZONE_ID, distance_km: '9.75' },
+      ]);
+      // `find` does not preserve the ranking, so the service must reorder.
+      fanzoneRepo.find.mockResolvedValue([
+        makeFanzone(),
+        makeFanzone({ id: other }),
+      ]);
+
+      const result = await service.findWithDistanceFrom(LATITUDE, LONGITUDE);
+
+      expect(result.map((zone) => zone.id)).toEqual([other, FANZONE_ID]);
+      expect(result.map((zone) => zone.distance)).toEqual([1.5, 9.75]);
+    });
+
+    it('restricts to the given ids and drops the limit when they are supplied', async () => {
+      const qb = stubFanzoneQb();
+      qb.getRawMany.mockResolvedValue([{ id: FANZONE_ID, distance_km: '3.2' }]);
+      fanzoneRepo.find.mockResolvedValue([makeFanzone()]);
+
+      await service.findWithDistanceFrom(LATITUDE, LONGITUDE, {
+        fanzoneIds: [FANZONE_ID],
+      });
+
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('fanzone.id IN'),
+        { fanzoneIds: [FANZONE_ID] },
+      );
+      // A LIMIT on top of an explicit id list could drop the zone asked about.
+      expect(qb.limit).not.toHaveBeenCalled();
+    });
+
+    it('returns nothing, and queries nothing, for an empty id list', async () => {
+      const result = await service.findWithDistanceFrom(LATITUDE, LONGITUDE, {
+        fanzoneIds: [],
+      });
+
+      expect(result).toEqual([]);
+      expect(fanzoneRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('skips the entity read when no fan zone ranked', async () => {
+      const qb = stubFanzoneQb();
+      qb.getRawMany.mockResolvedValue([]);
+
+      const result = await service.findWithDistanceFrom(LATITUDE, LONGITUDE);
+
+      expect(result).toEqual([]);
+      expect(fanzoneRepo.find).not.toHaveBeenCalled();
     });
   });
 

@@ -19,13 +19,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:trace": "node scripts/generate-traceability.js",
-    "seed:admin": "ts-node -r tsconfig-paths/register scripts/seed-admin.ts"
-  },
-  "typeorm": {
-    "typeorm": "typeorm",
-    "migration:generate": "typeorm migration:generate -d src/database/typeorm.config.ts",
-    "migration:run": "typeorm migration:run -d src/database/typeorm.config.ts",
-    "migration:revert": "typeorm migration:revert -d src/database/typeorm.config.ts"
+    "seed:admin": "ts-node -r tsconfig-paths/register scripts/seed-admin.ts",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/typeorm.config.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/typeorm.config.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/typeorm.config.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
@@ -43,6 +41,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "dotenv": "^17.4.1",
+    "groq-sdk": "^1.5.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",

@@ -45,11 +45,11 @@ export class MatchEntity {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt!: Date;
 
-  // Foreign Keys
-  @Column({ type: 'uuid' })
+  // Foreign Keys — each shares its column with the relation below.
+  @Column({ type: 'uuid', name: 'home_team_id' })
   homeTeamId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'away_team_id' })
   awayTeamId!: string;
 
   // Relations - Many to One

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 
 // Import entities
 import { AlertEntity } from './entities/alert.entity';
@@ -25,6 +24,13 @@ import { MatchModule } from '../match/match.module';
  * - Track alert status (PENDING, SENT, DISMISSED)
  * - User alert management
  *
+ * Note on scheduling: `AlertService.handlePendingAlerts` carries the `@Cron`
+ * decorator, but `ScheduleModule.forRoot()` is **not** imported here — it lives
+ * in `AppModule`, once. Two `forRoot()` calls (this module and `AdminModule`
+ * both had one) can register the same job twice. Keeping it out also means a
+ * spec that compiles this module alone gets no scheduler, so the decorator stays
+ * inert and no timer starts during tests; `alert.module.spec.ts` asserts that.
+ *
  * Key Features:
  * - Scheduled polling to check for triggered alerts
  * - Alert time customization
@@ -44,13 +50,6 @@ import { MatchModule } from '../match/match.module';
      * - Provides Repository<AlertEntity>
      */
     TypeOrmModule.forFeature([AlertEntity]),
-
-    /**
-     * Schedule Module
-     * - For @Cron and @Interval decorators
-     * - Used for alert polling service
-     */
-    ScheduleModule.forRoot(),
 
     /**
      * User Module

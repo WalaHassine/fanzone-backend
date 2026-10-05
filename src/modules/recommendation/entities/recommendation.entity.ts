@@ -15,14 +15,14 @@ export class RecommendationEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  // Foreign Keys
-  @Column({ type: 'uuid' })
+  // Foreign Keys — each shares its column with the relation below.
+  @Column({ type: 'uuid', name: 'user_id' })
   userId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'match_id' })
   matchId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'recommended_fan_zone_id' })
   recommendedFanZoneId!: string;
 
   // AI-generated explanation (natural language)
